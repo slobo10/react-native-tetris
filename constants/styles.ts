@@ -7,6 +7,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  gameSvg: {
+    backgroundColor: "lightgrey",
+    borderStyle: "solid",
+    borderWidth: 5,
+    borderColor: "black",
+  },
 });
 
 export default styles;
