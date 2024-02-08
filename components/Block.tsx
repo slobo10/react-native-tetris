@@ -1,11 +1,8 @@
 import { Component, ReactNode, Context } from "react";
 import { Rect } from "react-native-svg";
-import { GameContextType } from "../constants/types";
+import { BlockProps, BlockState, GameContextType } from "../constants/types";
 
-class Block extends Component<
-  { coordinates: [number, number] },
-  { thisBlock: boolean }
-> {
+class Block extends Component<BlockProps, BlockState> {
   static contextType: Context<{}>;
   private GameContextValue: GameContextType;
 

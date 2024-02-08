@@ -4,4 +4,12 @@ type GameContextType = {
   blocks: boolean[][];
 };
 
-export { GameContextType };
+type BlockProps = {
+  coordinates: [number, number];
+};
+
+type BlockState = {
+  thisBlock: boolean;
+};
+
+export { GameContextType, BlockProps, BlockState };
