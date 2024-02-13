@@ -51,7 +51,9 @@ class Block extends Component<BlockProps, BlockState> {
         <Rect
           x={this.props.coordinates[0] * this.GameContextValue.blockSize}
           y={
-            (this.GameContextValue.screenDim[1] - this.props.coordinates[1]) *
+            (this.GameContextValue.screenDim[1] -
+              this.props.coordinates[1] -
+              1) *
             this.GameContextValue.blockSize
           }
           width={this.GameContextValue.blockSize}
