@@ -24,6 +24,7 @@ class Game extends Component {
   private frameRate: number;
   private update(This: Game): void {
     let i: number;
+    let tetriminoHasFallen: boolean = false;
 
     for (i = 0; i < This.fallingTetrimino.terimino.length; i++) {
       This.gameContextValue.blocks[
@@ -33,7 +34,19 @@ class Game extends Component {
       ] = false;
     }
 
-    This.fallingTetrimino.position[1]--;
+    for (i = 0; i < This.fallingTetrimino.terimino.length; i++) {
+      if (
+        This.fallingTetrimino.terimino[i][1] +
+          This.fallingTetrimino.position[1] ===
+        0
+      ) {
+        tetriminoHasFallen = true;
+      }
+    }
+
+    if (!tetriminoHasFallen) {
+      This.fallingTetrimino.position[1]--;
+    }
 
     for (i = 0; i < This.fallingTetrimino.terimino.length; i++) {
       This.gameContextValue.blocks[
