@@ -4,6 +4,7 @@ import { BlockProps, BlockState, GameContextType } from "../constants/types";
 
 class Block extends Component<BlockProps, BlockState> {
   static contextType: Context<{}>;
+  static state: { thisBlock: boolean };
   private GameContextValue: GameContextType;
 
   public constructor(
@@ -11,6 +12,15 @@ class Block extends Component<BlockProps, BlockState> {
     context: GameContextType
   ) {
     super(props);
+
+    context.blockUpdateFunctions.push(() => {
+      this.setState({
+        thisBlock:
+          this.GameContextValue.blocks[this.props.coordinates[0]][
+            this.props.coordinates[1]
+          ],
+      });
+    });
 
     this.state = {
       thisBlock:

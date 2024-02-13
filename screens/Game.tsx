@@ -8,12 +8,54 @@ import {
 import Svg from "react-native-svg";
 import styles from "../constants/styles";
 import Block from "../components/Block";
-import { GameContextType } from "../constants/types";
+import { GameContextType, Tetrimino } from "../constants/types";
 
 let GameContext: Context<{}> = createContext({});
 
 class Game extends Component {
   private gameContextValue: GameContextType;
+  private fallingTetrimino: {
+    position: [number, number];
+    rotation: number;
+    terimino: Tetrimino;
+  };
+  private fallenTetriminos: Tetrimino;
+  private tetriminos: Tetrimino[];
+  private frameRate: number;
+  private update(This: Game): void {
+    console.log(This);
+    let i: number;
+
+    for (i = 0; i < This.fallingTetrimino.terimino.length; i++) {
+      This.gameContextValue.blocks[
+        This.fallingTetrimino.terimino[i][0] + This.fallingTetrimino.position[0]
+      ][
+        This.fallingTetrimino.terimino[i][1] + This.fallingTetrimino.position[1]
+      ] = false;
+    }
+
+    This.fallingTetrimino.position[1]--;
+
+    for (i = 0; i < This.fallingTetrimino.terimino.length; i++) {
+      This.gameContextValue.blocks[
+        This.fallingTetrimino.terimino[i][0] + This.fallingTetrimino.position[0]
+      ][
+        This.fallingTetrimino.terimino[i][1] + This.fallingTetrimino.position[1]
+      ] = true;
+    }
+
+    for (i = 0; i < this.gameContextValue.blockUpdateFunctions.length; i++) {
+      this.gameContextValue.blockUpdateFunctions[i]();
+    }
+
+    console.log("Game updated!");
+  }
+
+  private start(): void {
+    setInterval(() => {
+      this.update(this);
+    }, 1000 / this.frameRate);
+  }
 
   public constructor(props: PropsWithChildren) {
     super(props);
@@ -21,7 +63,23 @@ class Game extends Component {
       screenDim: [10, 20],
       blockSize: 30,
       blocks: [],
+      blockUpdateFunctions: [],
     };
+    this.tetriminos = [
+      [
+        [0, -2],
+        [0, -1],
+        [0, 0],
+        [0, 1],
+      ],
+    ];
+    this.fallingTetrimino = {
+      position: [5, 10],
+      rotation: 0,
+      terimino: this.tetriminos[0],
+    };
+    this.fallenTetriminos = [];
+    this.frameRate = 1;
 
     let i: number;
     let j: number;
@@ -33,18 +91,29 @@ class Game extends Component {
       }
     }
 
+    for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+      this.gameContextValue.blocks[
+        this.fallingTetrimino.terimino[i][0] + this.fallingTetrimino.position[0]
+      ][
+        this.fallingTetrimino.terimino[i][1] + this.fallingTetrimino.position[1]
+      ] = true;
+    }
+
+    for (i = 0; i < this.fallenTetriminos.length; i++) {
+      this.gameContextValue.blocks[this.fallenTetriminos[i][0]][
+        this.fallenTetriminos[i][1]
+      ] = true;
+    }
+
     Block.contextType = GameContext;
+
+    this.start();
   }
 
   public render(): ReactNode {
     let i: number;
     let j: number;
     let blockOutput: JSX.Element[] = [];
-
-    // this.gameContextValue.blocks[4][19] = true;
-    // this.gameContextValue.blocks[4][18] = true;
-    // this.gameContextValue.blocks[4][17] = true;
-    // this.gameContextValue.blocks[4][16] = true; //Example
 
     for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
       for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
