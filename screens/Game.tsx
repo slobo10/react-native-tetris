@@ -23,7 +23,6 @@ class Game extends Component {
   private tetriminos: Tetrimino[];
   private frameRate: number;
   private update(This: Game): void {
-    console.log(This);
     let i: number;
 
     for (i = 0; i < This.fallingTetrimino.terimino.length; i++) {
@@ -47,8 +46,6 @@ class Game extends Component {
     for (i = 0; i < this.gameContextValue.blockUpdateFunctions.length; i++) {
       this.gameContextValue.blockUpdateFunctions[i]();
     }
-
-    console.log("Game updated!");
   }
 
   private start(): void {
@@ -117,7 +114,9 @@ class Game extends Component {
 
     for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
       for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
-        blockOutput.push(<Block coordinates={[i, j]} />);
+        blockOutput.push(
+          <Block coordinates={[i, j]} key={"block" + i + "," + j} />
+        );
       }
     }
 
