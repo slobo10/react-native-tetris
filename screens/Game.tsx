@@ -108,6 +108,8 @@ class Game extends Component {
   }
 
   public render(): ReactNode {
+    console.log("Game rendered!");
+
     let i: number;
     let j: number;
     let blockOutput: JSX.Element[] = [];

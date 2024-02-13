@@ -31,6 +31,14 @@ class Block extends Component<BlockProps, BlockState> {
   }
 
   public render(): ReactNode {
+    console.log(
+      "Block " +
+        this.props.coordinates[0] +
+        "," +
+        this.props.coordinates[1] +
+        " rendered!"
+    );
+
     if (this.state.thisBlock) {
       return (
         <Rect
