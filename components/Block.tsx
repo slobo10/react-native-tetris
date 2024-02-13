@@ -14,12 +14,19 @@ class Block extends Component<BlockProps, BlockState> {
     super(props);
 
     context.blockUpdateFunctions.push(() => {
-      this.setState({
-        thisBlock:
-          this.GameContextValue.blocks[this.props.coordinates[0]][
-            this.props.coordinates[1]
-          ],
-      });
+      if (
+        this.state.thisBlock !=
+        this.GameContextValue.blocks[this.props.coordinates[0]][
+          this.props.coordinates[1]
+        ]
+      ) {
+        this.setState({
+          thisBlock:
+            this.GameContextValue.blocks[this.props.coordinates[0]][
+              this.props.coordinates[1]
+            ],
+        });
+      }
     });
 
     this.state = {
