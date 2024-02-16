@@ -102,7 +102,7 @@ class Game extends Component {
       this.gameContextValue.blockUpdateFunctions[i]();
     }
   }
-  
+
   private update(This: Game): void {
     This.moveFallingTetrimino([0, -1]);
   }
@@ -155,8 +155,7 @@ class Game extends Component {
       rotation: 0,
       terimino: this.tetriminos[0],
     };
-    this.fallenTetriminos = [];
-    this.frameRate = 1;
+    this.frameRate = 10;
 
     let i: number;
     let j: number;
@@ -173,12 +172,6 @@ class Game extends Component {
         this.fallingTetrimino.terimino[i][0] + this.fallingTetrimino.position[0]
       ][
         this.fallingTetrimino.terimino[i][1] + this.fallingTetrimino.position[1]
-      ] = true;
-    }
-
-    for (i = 0; i < this.fallenTetriminos.length; i++) {
-      this.gameContextValue.blocks[this.fallenTetriminos[i][0]][
-        this.fallenTetriminos[i][1]
       ] = true;
     }
 
