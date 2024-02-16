@@ -117,7 +117,7 @@ class Game extends Component {
       ],
     ];
     this.fallingTetrimino = {
-      position: [5, 10],
+      position: [4, 20],
       rotation: 0,
       terimino: this.tetriminos[0],
     };
