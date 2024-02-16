@@ -108,7 +108,6 @@ class Game extends Component {
   }
 
   private keyDownEventHandler(This: Game, event: KeyboardEvent): void {
-    console.log(event);
     if (!event.repeat) {
       if (event.key.toLocaleUpperCase() === "D") {
       }
