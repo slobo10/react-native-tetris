@@ -107,10 +107,31 @@ class Game extends Component {
     This.moveFallingTetrimino([0, -1]);
   }
 
+  private keyDownEventHandler(This: Game, event: KeyboardEvent): void {
+    console.log(event);
+    if (!event.repeat) {
+      if (event.key.toLocaleUpperCase() === "D") {
+      }
+      switch (event.key.toUpperCase()) {
+        case "D": {
+          This.moveFallingTetrimino([1, 0]);
+          break;
+        }
+        case "A": {
+          This.moveFallingTetrimino([-1, 0]);
+          break;
+        }
+      }
+    }
+  }
+
   private start(): void {
     setInterval(() => {
       this.update(this);
     }, 1000 / this.frameRate);
+    document.addEventListener("keydown", (event) => {
+      this.keyDownEventHandler(this, event);
+    });
   }
 
   public constructor(props: PropsWithChildren) {
