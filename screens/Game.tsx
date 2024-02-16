@@ -19,7 +19,6 @@ class Game extends Component {
     rotation: number;
     terimino: Tetrimino;
   };
-  private fallenTetriminos: Tetrimino;
   private tetriminos: Tetrimino[];
   private frameRate: number;
   private update(This: Game): void {
