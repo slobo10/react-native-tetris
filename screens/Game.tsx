@@ -21,37 +21,43 @@ class Game extends Component {
   };
   private tetriminos: Tetrimino[];
   private frameRate: number;
-  private update(This: Game): void {
+  private moveFallingTetrimino(coords: [number, number]): void {
     let i: number;
+    let j: number;
+    let k: number;
     let tetriminoHasFallen: boolean = false;
 
-    for (i = 0; i < This.fallingTetrimino.terimino.length; i++) {
-      This.gameContextValue.blocks[
-        This.fallingTetrimino.terimino[i][0] + This.fallingTetrimino.position[0]
+    //Remove falling tetrimino from board
+    for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+      this.gameContextValue.blocks[
+        this.fallingTetrimino.terimino[i][0] + this.fallingTetrimino.position[0]
       ][
-        This.fallingTetrimino.terimino[i][1] + This.fallingTetrimino.position[1]
+        this.fallingTetrimino.terimino[i][1] + this.fallingTetrimino.position[1]
       ] = false;
     }
 
-    for (i = 0; i < This.fallingTetrimino.terimino.length; i++) {
+    //Check if falling tetrimino is touching the ground
+    for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
       if (
-        This.fallingTetrimino.terimino[i][1] +
-          This.fallingTetrimino.position[1] ===
+        this.fallingTetrimino.terimino[i][1] +
+          this.fallingTetrimino.position[1] ===
         0
       ) {
         tetriminoHasFallen = true;
+        break;
       }
     }
-    for (i = 0; i < This.gameContextValue.blocks.length; i++) {
-      for (j = 0; j < This.gameContextValue.blocks[i].length; j++) {
-        if (This.gameContextValue.blocks[i][j]) {
-          for (k = 0; k < This.fallingTetrimino.terimino.length; k++) {
+    //Check if falling tetrimino is touching fallen blocks
+    for (i = 0; i < this.gameContextValue.blocks.length; i++) {
+      for (j = 0; j < this.gameContextValue.blocks[i].length; j++) {
+        if (this.gameContextValue.blocks[i][j]) {
+          for (k = 0; k < this.fallingTetrimino.terimino.length; k++) {
             if (
-              This.fallingTetrimino.terimino[k][1] +
-                This.fallingTetrimino.position[1] ===
+              this.fallingTetrimino.terimino[k][1] +
+                this.fallingTetrimino.position[1] ===
                 j + 1 &&
-              This.fallingTetrimino.terimino[k][0] +
-                This.fallingTetrimino.position[0] ===
+              this.fallingTetrimino.terimino[k][0] +
+                this.fallingTetrimino.position[0] ===
                 i
             ) {
               tetriminoHasFallen = true;
@@ -62,36 +68,43 @@ class Game extends Component {
       }
     }
 
+    //If tetrimino has not fallen, move it accordingly. Else, spawn new tetrimino
     if (!tetriminoHasFallen) {
-      This.fallingTetrimino.position[1]--;
+      this.fallingTetrimino.position[0] += coords[0];
+      this.fallingTetrimino.position[1] += coords[1];
     } else {
-      for (i = 0; i < This.fallingTetrimino.terimino.length; i++) {
-        This.gameContextValue.blocks[
-          This.fallingTetrimino.terimino[i][0] +
-            This.fallingTetrimino.position[0]
+      for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+        this.gameContextValue.blocks[
+          this.fallingTetrimino.terimino[i][0] +
+            this.fallingTetrimino.position[0]
         ][
-          This.fallingTetrimino.terimino[i][1] +
-            This.fallingTetrimino.position[1]
+          this.fallingTetrimino.terimino[i][1] +
+            this.fallingTetrimino.position[1]
         ] = true;
       }
-      This.fallingTetrimino = {
+      this.fallingTetrimino = {
         position: [5, 20],
         rotation: 0,
-        terimino: This.tetriminos[0],
+        terimino: this.tetriminos[0],
       };
     }
 
-    for (i = 0; i < This.fallingTetrimino.terimino.length; i++) {
-      This.gameContextValue.blocks[
-        This.fallingTetrimino.terimino[i][0] + This.fallingTetrimino.position[0]
+    //Readd tetrimino to board
+    for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+      this.gameContextValue.blocks[
+        this.fallingTetrimino.terimino[i][0] + this.fallingTetrimino.position[0]
       ][
-        This.fallingTetrimino.terimino[i][1] + This.fallingTetrimino.position[1]
+        this.fallingTetrimino.terimino[i][1] + this.fallingTetrimino.position[1]
       ] = true;
     }
 
     for (i = 0; i < this.gameContextValue.blockUpdateFunctions.length; i++) {
       this.gameContextValue.blockUpdateFunctions[i]();
     }
+  }
+  
+  private update(This: Game): void {
+    This.moveFallingTetrimino([0, -1]);
   }
 
   private start(): void {
