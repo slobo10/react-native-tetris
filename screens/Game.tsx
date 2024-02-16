@@ -42,6 +42,25 @@ class Game extends Component {
         tetriminoHasFallen = true;
       }
     }
+    for (i = 0; i < This.gameContextValue.blocks.length; i++) {
+      for (j = 0; j < This.gameContextValue.blocks[i].length; j++) {
+        if (This.gameContextValue.blocks[i][j]) {
+          for (k = 0; k < This.fallingTetrimino.terimino.length; k++) {
+            if (
+              This.fallingTetrimino.terimino[k][1] +
+                This.fallingTetrimino.position[1] ===
+                j + 1 &&
+              This.fallingTetrimino.terimino[k][0] +
+                This.fallingTetrimino.position[0] ===
+                i
+            ) {
+              tetriminoHasFallen = true;
+              break;
+            }
+          }
+        }
+      }
+    }
 
     if (!tetriminoHasFallen) {
       This.fallingTetrimino.position[1]--;
