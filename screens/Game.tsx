@@ -45,6 +45,21 @@ class Game extends Component {
 
     if (!tetriminoHasFallen) {
       This.fallingTetrimino.position[1]--;
+    } else {
+      for (i = 0; i < This.fallingTetrimino.terimino.length; i++) {
+        This.gameContextValue.blocks[
+          This.fallingTetrimino.terimino[i][0] +
+            This.fallingTetrimino.position[0]
+        ][
+          This.fallingTetrimino.terimino[i][1] +
+            This.fallingTetrimino.position[1]
+        ] = true;
+      }
+      This.fallingTetrimino = {
+        position: [5, 20],
+        rotation: 0,
+        terimino: This.tetriminos[0],
+      };
     }
 
     for (i = 0; i < This.fallingTetrimino.terimino.length; i++) {
