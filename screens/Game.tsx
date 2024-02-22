@@ -79,12 +79,8 @@ class Game extends Component {
       fallingTetrimino = this.getFallingTetrimino();
     } else {
       for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
-        this.gameContextValue.blocks[
-          this.fallingTetrimino.terimino[i][0] +
-            this.fallingTetrimino.position[0]
-        ][
-          this.fallingTetrimino.terimino[i][1] +
-            this.fallingTetrimino.position[1]
+        this.gameContextValue.blocks[fallingTetrimino[i][0]][
+          fallingTetrimino[i][1]
         ] = true;
       }
       this.fallingTetrimino = {
