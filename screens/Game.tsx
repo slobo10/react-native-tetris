@@ -24,17 +24,55 @@ class Game extends Component {
   private getFallingTetrimino(): Tetrimino {
     let i: number;
     let output: Tetrimino = [];
-    for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
-      output.push([
-        this.fallingTetrimino.position[0] +
-          this.fallingTetrimino.terimino[i][0],
-        this.fallingTetrimino.position[1] +
-          this.fallingTetrimino.terimino[i][1],
-      ]);
+    switch (this.fallingTetrimino.rotation) {
+      case 0: {
+        for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+          output.push([
+            this.fallingTetrimino.position[0] +
+              this.fallingTetrimino.terimino[i][0],
+            this.fallingTetrimino.position[1] +
+              this.fallingTetrimino.terimino[i][1],
+          ]);
+        }
+        break;
+      }
+      case 1: {
+        for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+          output.push([
+            this.fallingTetrimino.position[0] +
+              this.fallingTetrimino.terimino[i][1],
+            this.fallingTetrimino.position[1] -
+              this.fallingTetrimino.terimino[i][0],
+          ]);
+        }
+        break;
+      }
+      case 2: {
+        for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+          output.push([
+            this.fallingTetrimino.position[0] -
+              this.fallingTetrimino.terimino[i][0],
+            this.fallingTetrimino.position[1] -
+              this.fallingTetrimino.terimino[i][1],
+          ]);
+        }
+        break;
+      }
+      case 3: {
+        for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+          output.push([
+            this.fallingTetrimino.position[0] -
+              this.fallingTetrimino.terimino[i][1],
+            this.fallingTetrimino.position[1] +
+              this.fallingTetrimino.terimino[i][0],
+          ]);
+        }
+        break;
+      }
     }
     return output;
   }
-  private moveFallingTetrimino(coords: [number, number]): void {
+  private moveFallingTetrimino(coords: [number, number, number]): void {
     let i: number;
     let j: number;
     let k: number;
@@ -76,6 +114,13 @@ class Game extends Component {
     if (!tetriminoHasFallen) {
       this.fallingTetrimino.position[0] += coords[0];
       this.fallingTetrimino.position[1] += coords[1];
+      this.fallingTetrimino.rotation += coords[2];
+      if (this.fallingTetrimino.rotation > 3) {
+        this.fallingTetrimino.rotation = this.fallingTetrimino.rotation % 4;
+      } else if (this.fallingTetrimino.rotation < 0) {
+        this.fallingTetrimino.rotation =
+          4 + (this.fallingTetrimino.rotation % 4);
+      }
       fallingTetrimino = this.getFallingTetrimino();
     } else {
       for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
@@ -103,20 +148,26 @@ class Game extends Component {
   }
 
   private update(This: Game): void {
-    This.moveFallingTetrimino([0, -1]);
+    This.moveFallingTetrimino([0, -1, 0]);
   }
 
   private keyDownEventHandler(This: Game, event: KeyboardEvent): void {
     if (!event.repeat) {
-      if (event.key.toLocaleUpperCase() === "D") {
-      }
       switch (event.key.toUpperCase()) {
         case "D": {
-          This.moveFallingTetrimino([1, 0]);
+          This.moveFallingTetrimino([1, 0, 0]);
           break;
         }
         case "A": {
-          This.moveFallingTetrimino([-1, 0]);
+          This.moveFallingTetrimino([-1, 0, 0]);
+          break;
+        }
+        case "ARROWRIGHT": {
+          This.moveFallingTetrimino([0, 0, 1]);
+          break;
+        }
+        case "ARROWDOWN": {
+          This.moveFallingTetrimino([0, 0, -1]);
           break;
         }
       }
