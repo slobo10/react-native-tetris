@@ -28,10 +28,14 @@ class Game extends Component {
       case 0: {
         for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
           output.push([
-            this.fallingTetrimino.position[0] +
-              this.fallingTetrimino.terimino[i][0],
-            this.fallingTetrimino.position[1] +
-              this.fallingTetrimino.terimino[i][1],
+            Math.floor(
+              this.fallingTetrimino.position[0] +
+                this.fallingTetrimino.terimino[i][0]
+            ),
+            Math.floor(
+              this.fallingTetrimino.position[1] +
+                this.fallingTetrimino.terimino[i][1]
+            ),
           ]);
         }
         break;
@@ -39,10 +43,14 @@ class Game extends Component {
       case 1: {
         for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
           output.push([
-            this.fallingTetrimino.position[0] +
-              this.fallingTetrimino.terimino[i][1],
-            this.fallingTetrimino.position[1] -
-              this.fallingTetrimino.terimino[i][0],
+            Math.floor(
+              this.fallingTetrimino.position[0] +
+                this.fallingTetrimino.terimino[i][1]
+            ),
+            Math.floor(
+              this.fallingTetrimino.position[1] -
+                this.fallingTetrimino.terimino[i][0]
+            ),
           ]);
         }
         break;
@@ -50,10 +58,14 @@ class Game extends Component {
       case 2: {
         for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
           output.push([
-            this.fallingTetrimino.position[0] -
-              this.fallingTetrimino.terimino[i][0],
-            this.fallingTetrimino.position[1] -
-              this.fallingTetrimino.terimino[i][1],
+            Math.floor(
+              this.fallingTetrimino.position[0] -
+                this.fallingTetrimino.terimino[i][0]
+            ),
+            Math.floor(
+              this.fallingTetrimino.position[1] -
+                this.fallingTetrimino.terimino[i][1]
+            ),
           ]);
         }
         break;
@@ -61,10 +73,14 @@ class Game extends Component {
       case 3: {
         for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
           output.push([
-            this.fallingTetrimino.position[0] -
-              this.fallingTetrimino.terimino[i][1],
-            this.fallingTetrimino.position[1] +
-              this.fallingTetrimino.terimino[i][0],
+            Math.floor(
+              this.fallingTetrimino.position[0] -
+                this.fallingTetrimino.terimino[i][1]
+            ),
+            Math.floor(
+              this.fallingTetrimino.position[1] +
+                this.fallingTetrimino.terimino[i][0]
+            ),
           ]);
         }
         break;
@@ -193,10 +209,10 @@ class Game extends Component {
     };
     this.tetriminos = [
       [
-        [0, -2],
-        [0, -1],
-        [0, 0],
-        [0, 1],
+        [0.5, 1.5],
+        [0.5, 0.5],
+        [0.5, -0.5],
+        [0.5, -1.5],
       ],
     ];
     this.fallingTetrimino = {
@@ -208,6 +224,7 @@ class Game extends Component {
 
     let i: number;
     let j: number;
+    let fallingTetrimino: Tetrimino = this.getFallingTetrimino();
 
     for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
       this.gameContextValue.blocks.push([]);
@@ -217,10 +234,8 @@ class Game extends Component {
     }
 
     for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
-      this.gameContextValue.blocks[
-        this.fallingTetrimino.terimino[i][0] + this.fallingTetrimino.position[0]
-      ][
-        this.fallingTetrimino.terimino[i][1] + this.fallingTetrimino.position[1]
+      this.gameContextValue.blocks[fallingTetrimino[i][0]][
+        fallingTetrimino[i][1]
       ] = true;
     }
 
