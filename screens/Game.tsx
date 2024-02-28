@@ -17,7 +17,7 @@ class Game extends Component {
   private fallingTetrimino: {
     position: [number, number];
     rotation: number;
-    terimino: Tetrimino;
+    tetrimino: Tetrimino;
   };
   private tetriminos: Tetrimino[];
   private frameRate: number;
@@ -26,45 +26,61 @@ class Game extends Component {
     let output: Tetrimino = [];
     switch (this.fallingTetrimino.rotation) {
       case 0: {
-        for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
           output.push([
-            this.fallingTetrimino.position[0] +
-              this.fallingTetrimino.terimino[i][0],
-            this.fallingTetrimino.position[1] +
-              this.fallingTetrimino.terimino[i][1],
+            Math.floor(
+              this.fallingTetrimino.position[0] +
+                this.fallingTetrimino.tetrimino[i][0]
+            ),
+            Math.floor(
+              this.fallingTetrimino.position[1] +
+                this.fallingTetrimino.tetrimino[i][1]
+            ),
           ]);
         }
         break;
       }
       case 1: {
-        for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
           output.push([
-            this.fallingTetrimino.position[0] +
-              this.fallingTetrimino.terimino[i][1],
-            this.fallingTetrimino.position[1] -
-              this.fallingTetrimino.terimino[i][0],
+            Math.floor(
+              this.fallingTetrimino.position[0] +
+                this.fallingTetrimino.tetrimino[i][1]
+            ),
+            Math.floor(
+              this.fallingTetrimino.position[1] -
+                this.fallingTetrimino.tetrimino[i][0]
+            ),
           ]);
         }
         break;
       }
       case 2: {
-        for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
           output.push([
-            this.fallingTetrimino.position[0] -
-              this.fallingTetrimino.terimino[i][0],
-            this.fallingTetrimino.position[1] -
-              this.fallingTetrimino.terimino[i][1],
+            Math.floor(
+              this.fallingTetrimino.position[0] -
+                this.fallingTetrimino.tetrimino[i][0]
+            ),
+            Math.floor(
+              this.fallingTetrimino.position[1] -
+                this.fallingTetrimino.tetrimino[i][1]
+            ),
           ]);
         }
         break;
       }
       case 3: {
-        for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
           output.push([
-            this.fallingTetrimino.position[0] -
-              this.fallingTetrimino.terimino[i][1],
-            this.fallingTetrimino.position[1] +
-              this.fallingTetrimino.terimino[i][0],
+            Math.floor(
+              this.fallingTetrimino.position[0] -
+                this.fallingTetrimino.tetrimino[i][1]
+            ),
+            Math.floor(
+              this.fallingTetrimino.position[1] +
+                this.fallingTetrimino.tetrimino[i][0]
+            ),
           ]);
         }
         break;
@@ -123,7 +139,7 @@ class Game extends Component {
       }
       fallingTetrimino = this.getFallingTetrimino();
     } else {
-      for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+      for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
         this.gameContextValue.blocks[fallingTetrimino[i][0]][
           fallingTetrimino[i][1]
         ] = true;
@@ -131,7 +147,8 @@ class Game extends Component {
       this.fallingTetrimino = {
         position: [5, 20],
         rotation: 0,
-        terimino: this.tetriminos[0],
+        tetrimino:
+          this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
       };
     }
 
@@ -192,22 +209,67 @@ class Game extends Component {
       blockUpdateFunctions: [],
     };
     this.tetriminos = [
+      //Longbar
       [
-        [0, -2],
-        [0, -1],
+        [0.5, 1.5],
+        [0.5, 0.5],
+        [0.5, -0.5],
+        [0.5, -1.5],
+      ],
+      //T
+      [
+        [-1, 0],
         [0, 0],
+        [1, 0],
+        [0, -1],
+      ],
+      //L
+      [
+        [1, 0],
+        [0, 0],
+        [-1, 0],
+        [-1, -1],
+      ],
+      //Anti-L
+      [
+        [1, 0],
+        [0, 0],
+        [-1, 0],
+        [1, -1],
+      ],
+      //S
+      [
+        [1, 1],
         [0, 1],
+        [0, 0],
+        [-1, 0],
+      ],
+      //Z
+      [
+        [-1, 1],
+        [0, 1],
+        [0, 0],
+        [1, 0],
+      ],
+      //Square
+      [
+        [0.5, 0.5],
+        [0.5, -0.5],
+        [-0.5, -0.5],
+        [-0.5, 0.5],
       ],
     ];
     this.fallingTetrimino = {
-      position: [4, 20],
+      position: [5, 20],
       rotation: 0,
-      terimino: this.tetriminos[0],
+      tetrimino:
+        this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
     };
     this.frameRate = 10;
 
     let i: number;
     let j: number;
+    let fallingTetrimino: Tetrimino = this.getFallingTetrimino();
 
     for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
       this.gameContextValue.blocks.push([]);
@@ -216,11 +278,9 @@ class Game extends Component {
       }
     }
 
-    for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
-      this.gameContextValue.blocks[
-        this.fallingTetrimino.terimino[i][0] + this.fallingTetrimino.position[0]
-      ][
-        this.fallingTetrimino.terimino[i][1] + this.fallingTetrimino.position[1]
+    for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
+      this.gameContextValue.blocks[fallingTetrimino[i][0]][
+        fallingTetrimino[i][1]
       ] = true;
     }
 

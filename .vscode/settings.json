@@ -1,0 +1,10 @@
+{
+  "cSpell.customDictionaries": {
+    "custom-dictionary-workspace": {
+      "name": "dictionary",
+      "path": "${workspaceFolder:react-native-tetris}/.cspell/dictionary.txt",
+      "addWords": true,
+      "scope": "workspace"
+    }
+  }
+}
