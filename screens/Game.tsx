@@ -209,11 +209,54 @@ class Game extends Component {
       blockUpdateFunctions: [],
     };
     this.tetriminos = [
+      //Longbar
       [
         [0.5, 1.5],
         [0.5, 0.5],
         [0.5, -0.5],
         [0.5, -1.5],
+      ],
+      //T
+      [
+        [-1, 0],
+        [0, 0],
+        [1, 0],
+        [0, -1],
+      ],
+      //L
+      [
+        [1, 0],
+        [0, 0],
+        [-1, 0],
+        [-1, -1],
+      ],
+      //Anti-L
+      [
+        [1, 0],
+        [0, 0],
+        [-1, 0],
+        [1, -1],
+      ],
+      //S
+      [
+        [1, 1],
+        [0, 1],
+        [0, 0],
+        [-1, 0],
+      ],
+      //Z
+      [
+        [-1, 1],
+        [0, 1],
+        [0, 0],
+        [1, 0],
+      ],
+      //Square
+      [
+        [0.5, 0.5],
+        [0.5, -0.5],
+        [-0.5, -0.5],
+        [-0.5, 0.5],
       ],
     ];
     this.fallingTetrimino = {
@@ -222,7 +265,7 @@ class Game extends Component {
       tetrimino:
         this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
     };
-    this.frameRate = 1;
+    this.frameRate = 10;
 
     let i: number;
     let j: number;
