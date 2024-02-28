@@ -17,7 +17,7 @@ class Game extends Component {
   private fallingTetrimino: {
     position: [number, number];
     rotation: number;
-    terimino: Tetrimino;
+    tetrimino: Tetrimino;
   };
   private tetriminos: Tetrimino[];
   private frameRate: number;
@@ -26,60 +26,60 @@ class Game extends Component {
     let output: Tetrimino = [];
     switch (this.fallingTetrimino.rotation) {
       case 0: {
-        for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
           output.push([
             Math.floor(
               this.fallingTetrimino.position[0] +
-                this.fallingTetrimino.terimino[i][0]
+                this.fallingTetrimino.tetrimino[i][0]
             ),
             Math.floor(
               this.fallingTetrimino.position[1] +
-                this.fallingTetrimino.terimino[i][1]
+                this.fallingTetrimino.tetrimino[i][1]
             ),
           ]);
         }
         break;
       }
       case 1: {
-        for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
           output.push([
             Math.floor(
               this.fallingTetrimino.position[0] +
-                this.fallingTetrimino.terimino[i][1]
+                this.fallingTetrimino.tetrimino[i][1]
             ),
             Math.floor(
               this.fallingTetrimino.position[1] -
-                this.fallingTetrimino.terimino[i][0]
+                this.fallingTetrimino.tetrimino[i][0]
             ),
           ]);
         }
         break;
       }
       case 2: {
-        for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
           output.push([
             Math.floor(
               this.fallingTetrimino.position[0] -
-                this.fallingTetrimino.terimino[i][0]
+                this.fallingTetrimino.tetrimino[i][0]
             ),
             Math.floor(
               this.fallingTetrimino.position[1] -
-                this.fallingTetrimino.terimino[i][1]
+                this.fallingTetrimino.tetrimino[i][1]
             ),
           ]);
         }
         break;
       }
       case 3: {
-        for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
           output.push([
             Math.floor(
               this.fallingTetrimino.position[0] -
-                this.fallingTetrimino.terimino[i][1]
+                this.fallingTetrimino.tetrimino[i][1]
             ),
             Math.floor(
               this.fallingTetrimino.position[1] +
-                this.fallingTetrimino.terimino[i][0]
+                this.fallingTetrimino.tetrimino[i][0]
             ),
           ]);
         }
@@ -139,7 +139,7 @@ class Game extends Component {
       }
       fallingTetrimino = this.getFallingTetrimino();
     } else {
-      for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+      for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
         this.gameContextValue.blocks[fallingTetrimino[i][0]][
           fallingTetrimino[i][1]
         ] = true;
@@ -147,7 +147,7 @@ class Game extends Component {
       this.fallingTetrimino = {
         position: [5, 20],
         rotation: 0,
-        terimino:
+        tetrimino:
           this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
       };
     }
@@ -219,7 +219,7 @@ class Game extends Component {
     this.fallingTetrimino = {
       position: [5, 20],
       rotation: 0,
-      terimino:
+      tetrimino:
         this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
     };
     this.frameRate = 1;
@@ -235,7 +235,7 @@ class Game extends Component {
       }
     }
 
-    for (i = 0; i < this.fallingTetrimino.terimino.length; i++) {
+    for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
       this.gameContextValue.blocks[fallingTetrimino[i][0]][
         fallingTetrimino[i][1]
       ] = true;
