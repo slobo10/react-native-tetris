@@ -222,7 +222,7 @@ class Game extends Component {
       terimino:
         this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
     };
-    this.frameRate = 10;
+    this.frameRate = 1;
 
     let i: number;
     let j: number;
