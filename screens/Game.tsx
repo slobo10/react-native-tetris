@@ -147,7 +147,8 @@ class Game extends Component {
       this.fallingTetrimino = {
         position: [5, 20],
         rotation: 0,
-        terimino: this.tetriminos[0],
+        terimino:
+          this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
       };
     }
 
@@ -216,9 +217,10 @@ class Game extends Component {
       ],
     ];
     this.fallingTetrimino = {
-      position: [4, 20],
+      position: [5, 20],
       rotation: 0,
-      terimino: this.tetriminos[0],
+      terimino:
+        this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
     };
     this.frameRate = 10;
 
