@@ -21,6 +21,9 @@ class Game extends Component {
   };
   private tetriminos: Tetrimino[];
   private frameRate: number;
+  private playTime: number;
+  private timeToDrop: number | undefined;
+
   private getFallingTetrimino(): Tetrimino {
     let i: number;
     let output: Tetrimino = [];
@@ -95,12 +98,60 @@ class Game extends Component {
     let tetriminoHasFallen: boolean = false;
     let fallingTetrimino: Tetrimino = this.getFallingTetrimino();
     let touchingOtherBlocks: boolean = false;
+    let tetriminoHasMoved: boolean = true;
 
     //Remove falling tetrimino from board
     for (i = 0; i < fallingTetrimino.length; i++) {
       this.gameContextValue.blocks[fallingTetrimino[i][0]][
         fallingTetrimino[i][1]
       ] = false;
+    }
+
+    //Move falling tetrimino
+    this.fallingTetrimino.position[0] += coords[0];
+    this.fallingTetrimino.position[1] += coords[1];
+    this.fallingTetrimino.rotation += coords[2];
+    if (this.fallingTetrimino.rotation > 3) {
+      this.fallingTetrimino.rotation = this.fallingTetrimino.rotation % 4;
+    } else if (this.fallingTetrimino.rotation < 0) {
+      this.fallingTetrimino.rotation = 4 + (this.fallingTetrimino.rotation % 4);
+    }
+    fallingTetrimino = this.getFallingTetrimino();
+
+    //Check if tetrimino can move
+    for (i = 0; i < fallingTetrimino.length; i++) {
+      for (j = 0; j < this.gameContextValue.blocks.length; j++) {
+        for (k = 0; k < this.gameContextValue.blocks[j].length; k++) {
+          if (this.gameContextValue.blocks[j][k]) {
+            if (fallingTetrimino[i][0] === j && fallingTetrimino[i][1] === k) {
+              touchingOtherBlocks = true;
+              break;
+            }
+          }
+        }
+        if (touchingOtherBlocks) {
+          break;
+        }
+      }
+      if (
+        touchingOtherBlocks ||
+        fallingTetrimino[i][0] < 0 ||
+        fallingTetrimino[i][0] > this.gameContextValue.screenDim[0] - 1 ||
+        fallingTetrimino[i][1] < 0
+      ) {
+        this.fallingTetrimino.position[0] -= coords[0];
+        this.fallingTetrimino.position[1] -= coords[1];
+        this.fallingTetrimino.rotation -= coords[2];
+        if (this.fallingTetrimino.rotation > 3) {
+          this.fallingTetrimino.rotation = this.fallingTetrimino.rotation % 4;
+        } else if (this.fallingTetrimino.rotation < 0) {
+          this.fallingTetrimino.rotation =
+            4 + (this.fallingTetrimino.rotation % 4);
+        }
+        fallingTetrimino = this.getFallingTetrimino();
+        tetriminoHasMoved = false;
+        break;
+      }
     }
 
     //Check if falling tetrimino is touching the ground
@@ -110,6 +161,7 @@ class Game extends Component {
         break;
       }
     }
+
     //Check if falling tetrimino is touching fallen blocks
     for (i = 0; i < this.gameContextValue.blocks.length; i++) {
       for (j = 0; j < this.gameContextValue.blocks[i].length; j++) {
@@ -127,70 +179,28 @@ class Game extends Component {
       }
     }
 
-    //If tetrimino has not fallen, move it accordingly. Else, spawn new tetrimino
-    if (!tetriminoHasFallen) {
-      this.fallingTetrimino.position[0] += coords[0];
-      this.fallingTetrimino.position[1] += coords[1];
-      this.fallingTetrimino.rotation += coords[2];
-      fallingTetrimino = this.getFallingTetrimino();
+    //Make tetrimino land
+    if (tetriminoHasFallen) {
+      if (this.playTime >= this.timeToDrop && this.timeToDrop) {
+        for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
+          this.gameContextValue.blocks[fallingTetrimino[i][0]][
+            fallingTetrimino[i][1]
+          ] = true;
+        }
+        this.fallingTetrimino = {
+          position: [5, 20],
+          rotation: 0,
+          tetrimino:
+            this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
+        };
 
-      if (this.fallingTetrimino.rotation > 3) {
-        this.fallingTetrimino.rotation = this.fallingTetrimino.rotation % 4;
-      } else if (this.fallingTetrimino.rotation < 0) {
-        this.fallingTetrimino.rotation =
-          4 + (this.fallingTetrimino.rotation % 4);
-      }
-      for (i = 0; i < fallingTetrimino.length; i++) {
-        for (j = 0; j < this.gameContextValue.blocks.length; j++) {
-          for (k = 0; k < this.gameContextValue.blocks[j].length; k++) {
-            if (this.gameContextValue.blocks[j][k]) {
-              if (
-                fallingTetrimino[i][0] === j &&
-                fallingTetrimino[i][1] === k
-              ) {
-                touchingOtherBlocks = true;
-                break;
-              }
-            }
-          }
-          if (touchingOtherBlocks) {
-            break;
-          }
-        }
-        if (
-          touchingOtherBlocks ||
-          fallingTetrimino[i][0] < 0 ||
-          fallingTetrimino[i][0] > this.gameContextValue.screenDim[0] - 1 ||
-          fallingTetrimino[i][1] < 0
-        ) {
-          this.fallingTetrimino.position[0] -= coords[0];
-          this.fallingTetrimino.position[1] -= coords[1];
-          this.fallingTetrimino.rotation -= coords[2];
-          if (this.fallingTetrimino.rotation > 3) {
-            this.fallingTetrimino.rotation = this.fallingTetrimino.rotation % 4;
-          } else if (this.fallingTetrimino.rotation < 0) {
-            this.fallingTetrimino.rotation =
-              4 + (this.fallingTetrimino.rotation % 4);
-          }
-          fallingTetrimino = this.getFallingTetrimino();
-          break;
-        }
+        this.timeToDrop = undefined;
+      } else if (!this.timeToDrop || tetriminoHasMoved) {
+        this.timeToDrop = this.playTime + 400;
       }
     } else {
-      for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
-        this.gameContextValue.blocks[fallingTetrimino[i][0]][
-          fallingTetrimino[i][1]
-        ] = true;
-      }
-      this.fallingTetrimino = {
-        position: [5, 20],
-        rotation: 0,
-        tetrimino:
-          this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
-      };
+      this.timeToDrop = undefined;
     }
-
-    //Move tetrimino if possible
 
     //Readd tetrimino to board
     for (i = 0; i < fallingTetrimino.length; i++) {
@@ -206,6 +216,7 @@ class Game extends Component {
 
   private update(This: Game): void {
     This.moveFallingTetrimino([0, -1, 0]);
+    This.playTime += 1000 / This.frameRate;
   }
 
   private keyDownEventHandler(This: Game, event: KeyboardEvent): void {
@@ -306,6 +317,7 @@ class Game extends Component {
         this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
     };
     this.frameRate = 10;
+    this.playTime = 0;
 
     let i: number;
     let j: number;
