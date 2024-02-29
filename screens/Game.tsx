@@ -94,6 +94,7 @@ class Game extends Component {
     let k: number;
     let tetriminoHasFallen: boolean = false;
     let fallingTetrimino: Tetrimino = this.getFallingTetrimino();
+    let touchingOtherBlocks: boolean = false;
 
     //Remove falling tetrimino from board
     for (i = 0; i < fallingTetrimino.length; i++) {
@@ -140,7 +141,24 @@ class Game extends Component {
           4 + (this.fallingTetrimino.rotation % 4);
       }
       for (i = 0; i < fallingTetrimino.length; i++) {
+        for (j = 0; j < this.gameContextValue.blocks.length; j++) {
+          for (k = 0; k < this.gameContextValue.blocks[j].length; k++) {
+            if (this.gameContextValue.blocks[j][k]) {
+              if (
+                fallingTetrimino[i][0] === j &&
+                fallingTetrimino[i][1] === k
+              ) {
+                touchingOtherBlocks = true;
+                break;
+              }
+            }
+          }
+          if (touchingOtherBlocks) {
+            break;
+          }
+        }
         if (
+          touchingOtherBlocks ||
           fallingTetrimino[i][0] < 0 ||
           fallingTetrimino[i][0] > this.gameContextValue.screenDim[0] - 1 ||
           fallingTetrimino[i][1] < 0
