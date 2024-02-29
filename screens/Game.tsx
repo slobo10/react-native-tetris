@@ -131,13 +131,33 @@ class Game extends Component {
       this.fallingTetrimino.position[0] += coords[0];
       this.fallingTetrimino.position[1] += coords[1];
       this.fallingTetrimino.rotation += coords[2];
+      fallingTetrimino = this.getFallingTetrimino();
+
       if (this.fallingTetrimino.rotation > 3) {
         this.fallingTetrimino.rotation = this.fallingTetrimino.rotation % 4;
       } else if (this.fallingTetrimino.rotation < 0) {
         this.fallingTetrimino.rotation =
           4 + (this.fallingTetrimino.rotation % 4);
       }
-      fallingTetrimino = this.getFallingTetrimino();
+      for (i = 0; i < fallingTetrimino.length; i++) {
+        if (
+          fallingTetrimino[i][0] < 0 ||
+          fallingTetrimino[i][0] > this.gameContextValue.screenDim[0] - 1 ||
+          fallingTetrimino[i][1] < 0
+        ) {
+          this.fallingTetrimino.position[0] -= coords[0];
+          this.fallingTetrimino.position[1] -= coords[1];
+          this.fallingTetrimino.rotation -= coords[2];
+          if (this.fallingTetrimino.rotation > 3) {
+            this.fallingTetrimino.rotation = this.fallingTetrimino.rotation % 4;
+          } else if (this.fallingTetrimino.rotation < 0) {
+            this.fallingTetrimino.rotation =
+              4 + (this.fallingTetrimino.rotation % 4);
+          }
+          fallingTetrimino = this.getFallingTetrimino();
+          break;
+        }
+      }
     } else {
       for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
         this.gameContextValue.blocks[fallingTetrimino[i][0]][
@@ -151,6 +171,8 @@ class Game extends Component {
           this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
       };
     }
+
+    //Move tetrimino if possible
 
     //Readd tetrimino to board
     for (i = 0; i < fallingTetrimino.length; i++) {
