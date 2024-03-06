@@ -17,9 +17,9 @@ class Game extends Component {
   private fallingTetrimino: {
     position: [number, number];
     rotation: number;
-    tetrimino: Tetrimino;
+    tetrimino: { shape: Tetrimino; color: number };
   };
-  private tetriminos: Tetrimino[];
+  private tetriminos: { shape: Tetrimino; color: number }[]; //Colors: Cyan I, Yellow O, Purple T, Green S, Blue J, Red Z, Orange L
   private frameRate: number;
   private playTime: number;
   private timeToDrop: number | undefined;
@@ -29,60 +29,60 @@ class Game extends Component {
     let output: Tetrimino = [];
     switch (this.fallingTetrimino.rotation) {
       case 0: {
-        for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
           output.push([
             Math.floor(
               this.fallingTetrimino.position[0] +
-                this.fallingTetrimino.tetrimino[i][0]
+                this.fallingTetrimino.tetrimino.shape[i][0]
             ),
             Math.floor(
               this.fallingTetrimino.position[1] +
-                this.fallingTetrimino.tetrimino[i][1]
+                this.fallingTetrimino.tetrimino.shape[i][1]
             ),
           ]);
         }
         break;
       }
       case 1: {
-        for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
           output.push([
             Math.floor(
               this.fallingTetrimino.position[0] +
-                this.fallingTetrimino.tetrimino[i][1]
+                this.fallingTetrimino.tetrimino.shape[i][1]
             ),
             Math.floor(
               this.fallingTetrimino.position[1] -
-                this.fallingTetrimino.tetrimino[i][0]
+                this.fallingTetrimino.tetrimino.shape[i][0]
             ),
           ]);
         }
         break;
       }
       case 2: {
-        for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
           output.push([
             Math.floor(
               this.fallingTetrimino.position[0] -
-                this.fallingTetrimino.tetrimino[i][0]
+                this.fallingTetrimino.tetrimino.shape[i][0]
             ),
             Math.floor(
               this.fallingTetrimino.position[1] -
-                this.fallingTetrimino.tetrimino[i][1]
+                this.fallingTetrimino.tetrimino.shape[i][1]
             ),
           ]);
         }
         break;
       }
       case 3: {
-        for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
           output.push([
             Math.floor(
               this.fallingTetrimino.position[0] -
-                this.fallingTetrimino.tetrimino[i][1]
+                this.fallingTetrimino.tetrimino.shape[i][1]
             ),
             Math.floor(
               this.fallingTetrimino.position[1] +
-                this.fallingTetrimino.tetrimino[i][0]
+                this.fallingTetrimino.tetrimino.shape[i][0]
             ),
           ]);
         }
@@ -106,7 +106,7 @@ class Game extends Component {
     for (i = 0; i < fallingTetrimino.length; i++) {
       this.gameContextValue.blocks[fallingTetrimino[i][0]][
         fallingTetrimino[i][1]
-      ] = false;
+      ] = 0;
     }
 
     //Move falling tetrimino
@@ -184,17 +184,11 @@ class Game extends Component {
     //Make tetrimino land
     if (tetriminoTouchedDown) {
       if (this.playTime >= this.timeToDrop && this.timeToDrop) {
-        for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
+        for (i = 0; i < fallingTetrimino.length; i++) {
           this.gameContextValue.blocks[fallingTetrimino[i][0]][
             fallingTetrimino[i][1]
-          ] = true;
+          ] = this.fallingTetrimino.tetrimino.color;
         }
-        this.fallingTetrimino = {
-          position: [5, 20],
-          rotation: 0,
-          tetrimino:
-            this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
-        };
 
         tetriminoFallen = true;
 
@@ -210,7 +204,17 @@ class Game extends Component {
     for (i = 0; i < fallingTetrimino.length; i++) {
       this.gameContextValue.blocks[fallingTetrimino[i][0]][
         fallingTetrimino[i][1]
-      ] = true;
+      ] = this.fallingTetrimino.tetrimino.color;
+    }
+
+    //Spawn new tetrimino
+    if (tetriminoFallen) {
+      this.fallingTetrimino = {
+        position: [5, 20],
+        rotation: 0,
+        tetrimino:
+          this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
+      };
     }
 
     //Clear lines
@@ -220,7 +224,7 @@ class Game extends Component {
       for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
         madeLine = true;
         for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-          if (this.gameContextValue.blocks[i][j] === false) {
+          if (this.gameContextValue.blocks[i][j] === 0) {
             madeLine = false;
             break;
           }
@@ -228,7 +232,7 @@ class Game extends Component {
         if (madeLine) {
           lineLocations.push(j);
           for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-            this.gameContextValue.blocks[i][j] = false;
+            this.gameContextValue.blocks[i][j] = 0;
           }
         }
       }
@@ -306,54 +310,75 @@ class Game extends Component {
     };
     this.tetriminos = [
       //Longbar
-      [
-        [0.5, 1.5],
-        [0.5, 0.5],
-        [0.5, -0.5],
-        [0.5, -1.5],
-      ],
+      {
+        color: 6,
+        shape: [
+          [0.5, 1.5],
+          [0.5, 0.5],
+          [0.5, -0.5],
+          [0.5, -1.5],
+        ],
+      },
       //T
-      [
-        [-1, 0],
-        [0, 0],
-        [1, 0],
-        [0, -1],
-      ],
+      {
+        color: 7,
+        shape: [
+          [-1, 0],
+          [0, 0],
+          [1, 0],
+          [0, -1],
+        ],
+      },
       //L
-      [
-        [1, 0],
-        [0, 0],
-        [-1, 0],
-        [-1, -1],
-      ],
+      {
+        color: 2,
+        shape: [
+          [1, 0],
+          [0, 0],
+          [-1, 0],
+          [-1, -1],
+        ],
+      },
       //Anti-L
-      [
-        [1, 0],
-        [0, 0],
-        [-1, 0],
-        [1, -1],
-      ],
+      {
+        color: 5,
+        shape: [
+          [1, 0],
+          [0, 0],
+          [-1, 0],
+          [1, -1],
+        ],
+      },
       //S
-      [
-        [1, 1],
-        [0, 1],
-        [0, 0],
-        [-1, 0],
-      ],
+      {
+        color: 4,
+        shape: [
+          [1, 1],
+          [0, 1],
+          [0, 0],
+          [-1, 0],
+        ],
+      },
       //Z
-      [
-        [-1, 1],
-        [0, 1],
-        [0, 0],
-        [1, 0],
-      ],
+      {
+        color: 1,
+        shape: [
+          [-1, 1],
+          [0, 1],
+          [0, 0],
+          [1, 0],
+        ],
+      },
       //Square
-      [
-        [0.5, 0.5],
-        [0.5, -0.5],
-        [-0.5, -0.5],
-        [-0.5, 0.5],
-      ],
+      {
+        color: 3,
+        shape: [
+          [0.5, 0.5],
+          [0.5, -0.5],
+          [-0.5, -0.5],
+          [-0.5, 0.5],
+        ],
+      },
     ];
     this.fallingTetrimino = {
       position: [5, 20],
@@ -371,14 +396,14 @@ class Game extends Component {
     for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
       this.gameContextValue.blocks.push([]);
       for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
-        this.gameContextValue.blocks[i].push(false);
+        this.gameContextValue.blocks[i].push(0);
       }
     }
 
-    for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
+    for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
       this.gameContextValue.blocks[fallingTetrimino[i][0]][
         fallingTetrimino[i][1]
-      ] = true;
+      ] = this.fallingTetrimino.tetrimino.color;
     }
 
     Block.contextType = GameContext;

@@ -1,10 +1,11 @@
 import { Component, ReactNode, Context } from "react";
 import { Rect } from "react-native-svg";
 import { BlockProps, BlockState, GameContextType } from "../constants/types";
+import { colors } from "../constants/styles";
 
 class Block extends Component<BlockProps, BlockState> {
   static contextType: Context<{}>;
-  static state: { thisBlock: boolean };
+  static state: { thisBlock: number };
   private GameContextValue: GameContextType;
 
   public constructor(
@@ -58,6 +59,9 @@ class Block extends Component<BlockProps, BlockState> {
           }
           width={this.GameContextValue.blockSize}
           height={this.GameContextValue.blockSize}
+          fill={colors[this.state.thisBlock]}
+          stroke={"black"}
+          strokeWidth={1}
         />
       );
     }

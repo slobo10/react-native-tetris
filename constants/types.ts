@@ -1,7 +1,7 @@
 type GameContextType = {
   screenDim: [number, number];
   blockSize: number;
-  blocks: boolean[][];
+  blocks: number[][];
   blockUpdateFunctions: (() => void)[];
 };
 
@@ -12,7 +12,7 @@ type BlockProps = {
 };
 
 type BlockState = {
-  thisBlock: boolean;
+  thisBlock: number;
 };
 
 export { GameContextType, Tetrimino, BlockProps, BlockState };
