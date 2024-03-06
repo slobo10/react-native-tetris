@@ -1,10 +1,10 @@
 import { Component, ReactNode, Context } from "react";
 import { Rect } from "react-native-svg";
-import { BlockProps, BlockState, GameContextType } from "../constants/types";
+import { TileProps, TileState, GameContextType } from "../constants/types";
+import { colors } from "../constants/styles";
 
-class Block extends Component<BlockProps, BlockState> {
+class Tile extends Component<TileProps, TileState> {
   static contextType: Context<{}>;
-  static state: { thisBlock: boolean };
   private GameContextValue: GameContextType;
 
   public constructor(
@@ -13,16 +13,16 @@ class Block extends Component<BlockProps, BlockState> {
   ) {
     super(props);
 
-    context.blockUpdateFunctions.push(() => {
+    context.tileUpdateFunctions.push(() => {
       if (
-        this.state.thisBlock !=
-        this.GameContextValue.blocks[this.props.coordinates[0]][
+        this.state.thisTile !=
+        this.GameContextValue.tiles[this.props.coordinates[0]][
           this.props.coordinates[1]
         ]
       ) {
         this.setState({
-          thisBlock:
-            this.GameContextValue.blocks[this.props.coordinates[0]][
+          thisTile:
+            this.GameContextValue.tiles[this.props.coordinates[0]][
               this.props.coordinates[1]
             ],
         });
@@ -30,8 +30,8 @@ class Block extends Component<BlockProps, BlockState> {
     });
 
     this.state = {
-      thisBlock:
-        context.blocks[this.props.coordinates[0]][this.props.coordinates[1]],
+      thisTile:
+        context.tiles[this.props.coordinates[0]][this.props.coordinates[1]],
     };
 
     this.GameContextValue = context;
@@ -39,29 +39,32 @@ class Block extends Component<BlockProps, BlockState> {
 
   public render(): ReactNode {
     console.log(
-      "Block " +
+      "Tile " +
         this.props.coordinates[0] +
         "," +
         this.props.coordinates[1] +
         " rendered!"
     );
 
-    if (this.state.thisBlock) {
+    if (this.state.thisTile) {
       return (
         <Rect
-          x={this.props.coordinates[0] * this.GameContextValue.blockSize}
+          x={this.props.coordinates[0] * this.GameContextValue.tileSize}
           y={
             (this.GameContextValue.screenDim[1] -
               this.props.coordinates[1] -
               1) *
-            this.GameContextValue.blockSize
+            this.GameContextValue.tileSize
           }
-          width={this.GameContextValue.blockSize}
-          height={this.GameContextValue.blockSize}
+          width={this.GameContextValue.tileSize}
+          height={this.GameContextValue.tileSize}
+          fill={colors[this.state.thisTile]}
+          stroke={"black"}
+          strokeWidth={1}
         />
       );
     }
   }
 }
 
-export default Block;
+export default Tile;

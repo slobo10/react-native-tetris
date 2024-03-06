@@ -15,4 +15,16 @@ const styles = StyleSheet.create({
   },
 });
 
+const colors: string[] = [
+  "none",
+  "red",
+  "orange",
+  "yellow",
+  "green",
+  "blue",
+  "cyan",
+  "purple",
+];
+
 export default styles;
+export { colors };
