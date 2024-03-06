@@ -95,7 +95,9 @@ class Game extends Component {
     let i: number;
     let j: number;
     let k: number;
-    let tetriminoHasFallen: boolean = false;
+    let tetriminoTouchedDown: boolean = false;
+    let tetriminoFallen: boolean = false;
+    let lineLocations: number[] = [];
     let fallingTetrimino: Tetrimino = this.getFallingTetrimino();
     let touchingOtherBlocks: boolean = false;
     let tetriminoHasMoved: boolean = true;
@@ -157,7 +159,7 @@ class Game extends Component {
     //Check if falling tetrimino is touching the ground
     for (i = 0; i < fallingTetrimino.length; i++) {
       if (fallingTetrimino[i][1] === 0) {
-        tetriminoHasFallen = true;
+        tetriminoTouchedDown = true;
         break;
       }
     }
@@ -171,7 +173,7 @@ class Game extends Component {
               fallingTetrimino[k][1] === j + 1 &&
               fallingTetrimino[k][0] === i
             ) {
-              tetriminoHasFallen = true;
+              tetriminoTouchedDown = true;
               break;
             }
           }
@@ -180,7 +182,7 @@ class Game extends Component {
     }
 
     //Make tetrimino land
-    if (tetriminoHasFallen) {
+    if (tetriminoTouchedDown) {
       if (this.playTime >= this.timeToDrop && this.timeToDrop) {
         for (i = 0; i < this.fallingTetrimino.tetrimino.length; i++) {
           this.gameContextValue.blocks[fallingTetrimino[i][0]][
@@ -193,6 +195,8 @@ class Game extends Component {
           tetrimino:
             this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
         };
+
+        tetriminoFallen = true;
 
         this.timeToDrop = undefined;
       } else if (!this.timeToDrop || tetriminoHasMoved) {
@@ -209,6 +213,47 @@ class Game extends Component {
       ] = true;
     }
 
+    //Clear lines
+    if (tetriminoFallen) {
+      let madeLine: boolean = false;
+
+      for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
+        madeLine = true;
+        for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
+          if (this.gameContextValue.blocks[i][j] === false) {
+            madeLine = false;
+            break;
+          }
+        }
+        if (madeLine) {
+          lineLocations.push(j);
+          for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
+            this.gameContextValue.blocks[i][j] = false;
+          }
+        }
+      }
+    }
+
+    lineLocations.sort();
+
+    //Make fallen blocks fall into cleared lines
+    if (lineLocations.length > 0) {
+      let linesProcessed: number = 0;
+
+      for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
+        if (lineLocations[linesProcessed] === j + linesProcessed) {
+          linesProcessed++;
+          j--;
+          continue;
+        }
+        for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
+          this.gameContextValue.blocks[i][j] =
+            this.gameContextValue.blocks[i][j + linesProcessed];
+        }
+      }
+    }
+
+    //Tell blocks to rerender if needed
     for (i = 0; i < this.gameContextValue.blockUpdateFunctions.length; i++) {
       this.gameContextValue.blockUpdateFunctions[i]();
     }
