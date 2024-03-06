@@ -1,18 +1,18 @@
 type GameContextType = {
   screenDim: [number, number];
-  blockSize: number;
-  blocks: number[][];
-  blockUpdateFunctions: (() => void)[];
+  tileSize: number;
+  tiles: number[][];
+  tileUpdateFunctions: (() => void)[];
 };
 
 type Tetrimino = [number, number][];
 
-type BlockProps = {
+type TileProps = {
   coordinates: [number, number];
 };
 
-type BlockState = {
-  thisBlock: number;
+type TileState = {
+  thisTile: number;
 };
 
-export { GameContextType, Tetrimino, BlockProps, BlockState };
+export { GameContextType, Tetrimino, TileProps, TileState };

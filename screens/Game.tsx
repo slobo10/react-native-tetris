@@ -7,7 +7,7 @@ import {
 } from "react";
 import Svg from "react-native-svg";
 import styles from "../constants/styles";
-import Block from "../components/Block";
+import Tile from "../components/Tile";
 import { GameContextType, Tetrimino } from "../constants/types";
 
 let GameContext: Context<{}> = createContext({});
@@ -99,12 +99,12 @@ class Game extends Component {
     let tetriminoFallen: boolean = false;
     let lineLocations: number[] = [];
     let fallingTetrimino: Tetrimino = this.getFallingTetrimino();
-    let touchingOtherBlocks: boolean = false;
+    let touchingOtherTiles: boolean = false;
     let tetriminoHasMoved: boolean = true;
 
     //Remove falling tetrimino from board
     for (i = 0; i < fallingTetrimino.length; i++) {
-      this.gameContextValue.blocks[fallingTetrimino[i][0]][
+      this.gameContextValue.tiles[fallingTetrimino[i][0]][
         fallingTetrimino[i][1]
       ] = 0;
     }
@@ -122,21 +122,21 @@ class Game extends Component {
 
     //Check if tetrimino can move
     for (i = 0; i < fallingTetrimino.length; i++) {
-      for (j = 0; j < this.gameContextValue.blocks.length; j++) {
-        for (k = 0; k < this.gameContextValue.blocks[j].length; k++) {
-          if (this.gameContextValue.blocks[j][k]) {
+      for (j = 0; j < this.gameContextValue.tiles.length; j++) {
+        for (k = 0; k < this.gameContextValue.tiles[j].length; k++) {
+          if (this.gameContextValue.tiles[j][k]) {
             if (fallingTetrimino[i][0] === j && fallingTetrimino[i][1] === k) {
-              touchingOtherBlocks = true;
+              touchingOtherTiles = true;
               break;
             }
           }
         }
-        if (touchingOtherBlocks) {
+        if (touchingOtherTiles) {
           break;
         }
       }
       if (
-        touchingOtherBlocks ||
+        touchingOtherTiles ||
         fallingTetrimino[i][0] < 0 ||
         fallingTetrimino[i][0] > this.gameContextValue.screenDim[0] - 1 ||
         fallingTetrimino[i][1] < 0
@@ -164,10 +164,10 @@ class Game extends Component {
       }
     }
 
-    //Check if falling tetrimino is touching fallen blocks
-    for (i = 0; i < this.gameContextValue.blocks.length; i++) {
-      for (j = 0; j < this.gameContextValue.blocks[i].length; j++) {
-        if (this.gameContextValue.blocks[i][j]) {
+    //Check if falling tetrimino is touching fallen tiles
+    for (i = 0; i < this.gameContextValue.tiles.length; i++) {
+      for (j = 0; j < this.gameContextValue.tiles[i].length; j++) {
+        if (this.gameContextValue.tiles[i][j]) {
           for (k = 0; k < fallingTetrimino.length; k++) {
             if (
               fallingTetrimino[k][1] === j + 1 &&
@@ -185,7 +185,7 @@ class Game extends Component {
     if (tetriminoTouchedDown) {
       if (this.playTime >= this.timeToDrop && this.timeToDrop) {
         for (i = 0; i < fallingTetrimino.length; i++) {
-          this.gameContextValue.blocks[fallingTetrimino[i][0]][
+          this.gameContextValue.tiles[fallingTetrimino[i][0]][
             fallingTetrimino[i][1]
           ] = this.fallingTetrimino.tetrimino.color;
         }
@@ -202,7 +202,7 @@ class Game extends Component {
 
     //Readd tetrimino to board
     for (i = 0; i < fallingTetrimino.length; i++) {
-      this.gameContextValue.blocks[fallingTetrimino[i][0]][
+      this.gameContextValue.tiles[fallingTetrimino[i][0]][
         fallingTetrimino[i][1]
       ] = this.fallingTetrimino.tetrimino.color;
     }
@@ -224,7 +224,7 @@ class Game extends Component {
       for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
         madeLine = true;
         for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-          if (this.gameContextValue.blocks[i][j] === 0) {
+          if (this.gameContextValue.tiles[i][j] === 0) {
             madeLine = false;
             break;
           }
@@ -232,7 +232,7 @@ class Game extends Component {
         if (madeLine) {
           lineLocations.push(j);
           for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-            this.gameContextValue.blocks[i][j] = 0;
+            this.gameContextValue.tiles[i][j] = 0;
           }
         }
       }
@@ -240,7 +240,7 @@ class Game extends Component {
 
     lineLocations.sort();
 
-    //Make fallen blocks fall into cleared lines
+    //Make fallen tetriminos fall into cleared lines
     if (lineLocations.length > 0) {
       let linesProcessed: number = 0;
 
@@ -251,15 +251,15 @@ class Game extends Component {
           continue;
         }
         for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-          this.gameContextValue.blocks[i][j] =
-            this.gameContextValue.blocks[i][j + linesProcessed];
+          this.gameContextValue.tiles[i][j] =
+            this.gameContextValue.tiles[i][j + linesProcessed];
         }
       }
     }
 
-    //Tell blocks to rerender if needed
-    for (i = 0; i < this.gameContextValue.blockUpdateFunctions.length; i++) {
-      this.gameContextValue.blockUpdateFunctions[i]();
+    //Tell tiles to rerender if needed
+    for (i = 0; i < this.gameContextValue.tileUpdateFunctions.length; i++) {
+      this.gameContextValue.tileUpdateFunctions[i]();
     }
   }
 
@@ -304,9 +304,9 @@ class Game extends Component {
     super(props);
     this.gameContextValue = {
       screenDim: [10, 20],
-      blockSize: 30,
-      blocks: [],
-      blockUpdateFunctions: [],
+      tileSize: 30,
+      tiles: [],
+      tileUpdateFunctions: [],
     };
     this.tetriminos = [
       //Longbar
@@ -394,19 +394,19 @@ class Game extends Component {
     let fallingTetrimino: Tetrimino = this.getFallingTetrimino();
 
     for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-      this.gameContextValue.blocks.push([]);
+      this.gameContextValue.tiles.push([]);
       for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
-        this.gameContextValue.blocks[i].push(0);
+        this.gameContextValue.tiles[i].push(0);
       }
     }
 
     for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
-      this.gameContextValue.blocks[fallingTetrimino[i][0]][
+      this.gameContextValue.tiles[fallingTetrimino[i][0]][
         fallingTetrimino[i][1]
       ] = this.fallingTetrimino.tetrimino.color;
     }
 
-    Block.contextType = GameContext;
+    Tile.contextType = GameContext;
 
     this.start();
   }
@@ -416,12 +416,12 @@ class Game extends Component {
 
     let i: number;
     let j: number;
-    let blockOutput: JSX.Element[] = [];
+    let tileOutput: JSX.Element[] = [];
 
     for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
       for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
-        blockOutput.push(
-          <Block coordinates={[i, j]} key={"block" + i + "," + j} />
+        tileOutput.push(
+          <Tile coordinates={[i, j]} key={"tile" + i + "," + j} />
         );
       }
     }
@@ -430,14 +430,14 @@ class Game extends Component {
       <GameContext.Provider value={this.gameContextValue}>
         <Svg
           width={
-            this.gameContextValue.screenDim[0] * this.gameContextValue.blockSize
+            this.gameContextValue.screenDim[0] * this.gameContextValue.tileSize
           }
           height={
-            this.gameContextValue.screenDim[1] * this.gameContextValue.blockSize
+            this.gameContextValue.screenDim[1] * this.gameContextValue.tileSize
           }
           style={styles.gameSvg}
         >
-          {blockOutput}
+          {tileOutput}
         </Svg>
       </GameContext.Provider>
     );
