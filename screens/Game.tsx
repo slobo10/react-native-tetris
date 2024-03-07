@@ -56,10 +56,10 @@ class Game extends Component<{}> {
     Tile.contextType = GameContext;
 
     document.addEventListener("keydown", (event) => {
-      this.keyDownEventHandler(this, event);
+      this.keyDownEventHandler(event);
     });
     document.addEventListener("keyup", (event) => {
-      this.keyUpEventHandler(this, event);
+      this.keyUpEventHandler(event);
     });
 
     this.setFallingRate(this.fallingRate);
@@ -321,37 +321,37 @@ class Game extends Component<{}> {
     this.setFallingRate(this.speedLevel);
   }
 
-  private keyDownEventHandler(This: Game, event: KeyboardEvent): void {
+  private keyDownEventHandler(event: KeyboardEvent): void {
     if (!event.repeat) {
       switch (event.key.toUpperCase()) {
         case "D": {
-          This.moveFallingTetrimino([1, 0, 0]);
+          this.moveFallingTetrimino([1, 0, 0]);
           break;
         }
         case "A": {
-          This.moveFallingTetrimino([-1, 0, 0]);
+          this.moveFallingTetrimino([-1, 0, 0]);
           break;
         }
         case "S": {
-          This.startSoftDrop();
+          this.startSoftDrop();
           break;
         }
         case "ARROWRIGHT": {
-          This.moveFallingTetrimino([0, 0, 1]);
+          this.moveFallingTetrimino([0, 0, 1]);
           break;
         }
         case "ARROWDOWN": {
-          This.moveFallingTetrimino([0, 0, -1]);
+          this.moveFallingTetrimino([0, 0, -1]);
           break;
         }
       }
     }
   }
 
-  private keyUpEventHandler(This: Game, event: KeyboardEvent): void {
+  private keyUpEventHandler(event: KeyboardEvent): void {
     switch (event.key.toUpperCase()) {
       case "S": {
-        This.endSoftDrop();
+        this.endSoftDrop();
       }
     }
   }
