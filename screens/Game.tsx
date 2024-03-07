@@ -9,20 +9,26 @@ import Svg from "react-native-svg";
 import styles from "../constants/styles";
 import Tile from "../components/Tile";
 import { GameContextType, Tetrimino } from "../constants/types";
+import tetriminos from "../constants/tetriminos";
 
 let GameContext: Context<{}> = createContext({});
 
 class Game extends Component {
-  private gameContextValue: GameContextType;
+  private gameContextValue: GameContextType = {
+    screenDim: [10, 20],
+    tileSize: 30,
+    tiles: [],
+    tileUpdateFunctions: [],
+  };
   private fallingTetrimino: {
     position: [number, number];
     rotation: number;
     tetrimino: { shape: Tetrimino; color: number };
   };
-  private tetriminos: { shape: Tetrimino; color: number }[]; //Colors: Cyan I, Yellow O, Purple T, Green S, Blue J, Red Z, Orange L
-  private frameRate: number;
-  private playTime: number;
+  private fallingRate: number = 10;
+  private playTime: number = 0;
   private timeToDrop: number | undefined;
+  private tetriminos: { shape: Tetrimino; color: number }[] = tetriminos;
 
   private getFallingTetrimino(): Tetrimino {
     let i: number;
@@ -265,7 +271,7 @@ class Game extends Component {
 
   private update(This: Game): void {
     This.moveFallingTetrimino([0, -1, 0]);
-    This.playTime += 1000 / This.frameRate;
+    This.playTime += 1000 / This.fallingRate;
   }
 
   private keyDownEventHandler(This: Game, event: KeyboardEvent): void {
@@ -294,7 +300,7 @@ class Game extends Component {
   private start(): void {
     setInterval(() => {
       this.update(this);
-    }, 1000 / this.frameRate);
+    }, 1000 / this.fallingRate);
     document.addEventListener("keydown", (event) => {
       this.keyDownEventHandler(this, event);
     });
@@ -302,92 +308,13 @@ class Game extends Component {
 
   public constructor(props: PropsWithChildren) {
     super(props);
-    this.gameContextValue = {
-      screenDim: [10, 20],
-      tileSize: 30,
-      tiles: [],
-      tileUpdateFunctions: [],
-    };
-    this.tetriminos = [
-      //Longbar
-      {
-        color: 6,
-        shape: [
-          [0.5, 1.5],
-          [0.5, 0.5],
-          [0.5, -0.5],
-          [0.5, -1.5],
-        ],
-      },
-      //T
-      {
-        color: 7,
-        shape: [
-          [-1, 0],
-          [0, 0],
-          [1, 0],
-          [0, -1],
-        ],
-      },
-      //L
-      {
-        color: 2,
-        shape: [
-          [1, 0],
-          [0, 0],
-          [-1, 0],
-          [-1, -1],
-        ],
-      },
-      //Anti-L
-      {
-        color: 5,
-        shape: [
-          [1, 0],
-          [0, 0],
-          [-1, 0],
-          [1, -1],
-        ],
-      },
-      //S
-      {
-        color: 4,
-        shape: [
-          [1, 1],
-          [0, 1],
-          [0, 0],
-          [-1, 0],
-        ],
-      },
-      //Z
-      {
-        color: 1,
-        shape: [
-          [-1, 1],
-          [0, 1],
-          [0, 0],
-          [1, 0],
-        ],
-      },
-      //Square
-      {
-        color: 3,
-        shape: [
-          [0.5, 0.5],
-          [0.5, -0.5],
-          [-0.5, -0.5],
-          [-0.5, 0.5],
-        ],
-      },
-    ];
+
     this.fallingTetrimino = {
       position: [5, 20],
       rotation: 0,
       tetrimino:
         this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
     };
-    this.frameRate = 10;
-    this.playTime = 0;
 
     let i: number;
     let j: number;
