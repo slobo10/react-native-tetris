@@ -2,7 +2,7 @@ import { Component, Context, ReactNode, createContext } from "react";
 import Svg from "react-native-svg";
 import styles from "../constants/styles";
 import Tile from "../components/Tile";
-import { GameContextType, Tetrimino } from "../constants/types";
+import { GameContextType, Tetrimino, TetriminoPiece } from "../constants/types";
 import tetriminos from "../constants/tetriminos";
 
 let GameContext: Context<{}> = createContext({});
@@ -17,7 +17,13 @@ class Game extends Component<{}> {
   private fallingTetrimino: {
     position: [number, number];
     rotation: number;
-    tetrimino: { shape: Tetrimino; color: number };
+    shape: Tetrimino;
+    color: number;
+  } = {
+    position: [0, 0],
+    rotation: 0,
+    color: 0,
+    shape: [],
   };
   private fallingRate: number = 1;
   private speedLevel: number = 1;
@@ -28,19 +34,9 @@ class Game extends Component<{}> {
   public constructor(props: {}) {
     super(props);
 
-    this.fallingTetrimino = {
-      position: [
-        Math.ceil((this.gameContextValue.screenDim[0] - 1) / 2),
-        this.gameContextValue.screenDim[1] - 2,
-      ],
-      rotation: 0,
-      tetrimino:
-        this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
-    };
-
     let i: number;
     let j: number;
-    let fallingTetrimino: Tetrimino = this.getFallingTetrimino();
+    Tile.contextType = GameContext;
 
     for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
       this.gameContextValue.tiles.push([]);
@@ -48,14 +44,7 @@ class Game extends Component<{}> {
         this.gameContextValue.tiles[i].push(0);
       }
     }
-
-    for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
-      this.gameContextValue.tiles[fallingTetrimino[i][0]][
-        fallingTetrimino[i][1]
-      ] = this.fallingTetrimino.tetrimino.color;
-    }
-
-    Tile.contextType = GameContext;
+    this.spawnNewTetrimino();
 
     document.addEventListener("keydown", (event) => {
       this.keyDownEventHandler(event);
@@ -80,60 +69,60 @@ class Game extends Component<{}> {
     let output: Tetrimino = [];
     switch (this.fallingTetrimino.rotation) {
       case 0: {
-        for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.shape.length; i++) {
           output.push([
             Math.floor(
               this.fallingTetrimino.position[0] +
-                this.fallingTetrimino.tetrimino.shape[i][0]
+                this.fallingTetrimino.shape[i][0]
             ),
             Math.floor(
               this.fallingTetrimino.position[1] +
-                this.fallingTetrimino.tetrimino.shape[i][1]
+                this.fallingTetrimino.shape[i][1]
             ),
           ]);
         }
         break;
       }
       case 1: {
-        for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.shape.length; i++) {
           output.push([
             Math.floor(
               this.fallingTetrimino.position[0] +
-                this.fallingTetrimino.tetrimino.shape[i][1]
+                this.fallingTetrimino.shape[i][1]
             ),
             Math.floor(
               this.fallingTetrimino.position[1] -
-                this.fallingTetrimino.tetrimino.shape[i][0]
+                this.fallingTetrimino.shape[i][0]
             ),
           ]);
         }
         break;
       }
       case 2: {
-        for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.shape.length; i++) {
           output.push([
             Math.floor(
               this.fallingTetrimino.position[0] -
-                this.fallingTetrimino.tetrimino.shape[i][0]
+                this.fallingTetrimino.shape[i][0]
             ),
             Math.floor(
               this.fallingTetrimino.position[1] -
-                this.fallingTetrimino.tetrimino.shape[i][1]
+                this.fallingTetrimino.shape[i][1]
             ),
           ]);
         }
         break;
       }
       case 3: {
-        for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.shape.length; i++) {
           output.push([
             Math.floor(
               this.fallingTetrimino.position[0] -
-                this.fallingTetrimino.tetrimino.shape[i][1]
+                this.fallingTetrimino.shape[i][1]
             ),
             Math.floor(
               this.fallingTetrimino.position[1] +
-                this.fallingTetrimino.tetrimino.shape[i][0]
+                this.fallingTetrimino.shape[i][0]
             ),
           ]);
         }
@@ -149,6 +138,8 @@ class Game extends Component<{}> {
     let lineLocations: number[] = [];
     let madeLine: boolean = false;
     let fallingTetrimino: Tetrimino;
+    let newTetrimino: TetriminoPiece =
+      this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)];
 
     //Find lines and clear them
     for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
@@ -192,8 +183,8 @@ class Game extends Component<{}> {
         this.gameContextValue.screenDim[1] - 2,
       ],
       rotation: 0,
-      tetrimino:
-        this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
+      color: newTetrimino.color,
+      shape: newTetrimino.shape,
     };
 
     fallingTetrimino = this.getFallingTetrimino();
@@ -201,7 +192,7 @@ class Game extends Component<{}> {
     for (i = 0; i < fallingTetrimino.length; i++) {
       this.gameContextValue.tiles[fallingTetrimino[i][0]][
         fallingTetrimino[i][1]
-      ] = this.fallingTetrimino.tetrimino.color;
+      ] = this.fallingTetrimino.color;
     }
 
     for (i = 0; i < this.gameContextValue.tileUpdateFunctions.length; i++) {
@@ -301,7 +292,7 @@ class Game extends Component<{}> {
     for (i = 0; i < fallingTetrimino.length; i++) {
       this.gameContextValue.tiles[fallingTetrimino[i][0]][
         fallingTetrimino[i][1]
-      ] = this.fallingTetrimino.tetrimino.color;
+      ] = this.fallingTetrimino.color;
     }
 
     //Make tetrimino land
