@@ -1,10 +1,4 @@
-import {
-  Component,
-  Context,
-  PropsWithChildren,
-  ReactNode,
-  createContext,
-} from "react";
+import { Component, Context, ReactNode, createContext } from "react";
 import Svg from "react-native-svg";
 import styles from "../constants/styles";
 import Tile from "../components/Tile";
@@ -25,7 +19,9 @@ class Game extends Component<{}> {
     rotation: number;
     tetrimino: { shape: Tetrimino; color: number };
   };
-  private fallingRate: number = 10;
+  private fallingRate: number = 1;
+  private speedLevel: number = 1;
+  private fallingInterval: NodeJS.Timeout;
   private playTime: number = 0;
   private timeToDrop: number | undefined;
   private tetriminos: { shape: Tetrimino; color: number }[] = tetriminos;
@@ -59,21 +55,23 @@ class Game extends Component<{}> {
 
     Tile.contextType = GameContext;
 
-    this.start();
-  }
-
-  private start(): void {
-    setInterval(() => {
-      this.update(this);
-    }, 1000 / this.fallingRate);
     document.addEventListener("keydown", (event) => {
       this.keyDownEventHandler(this, event);
     });
+    document.addEventListener("keyup", (event) => {
+      this.keyUpEventHandler(this, event);
+    });
+
+    this.setFallingRate(this.fallingRate);
   }
 
-  private update(This: Game): void {
-    This.moveFallingTetrimino([0, -1, 0]);
-    This.playTime += 1000 / This.fallingRate;
+  private setFallingRate(n: number): void {
+    this.fallingRate = n;
+    clearInterval(this.fallingInterval);
+    this.fallingInterval = setInterval(() => {
+      this.moveFallingTetrimino([0, -1, 0]);
+      this.playTime += 1000 / this.fallingRate;
+    }, 1000 / this.fallingRate);
   }
 
   private getFallingTetrimino(): Tetrimino {
@@ -315,6 +313,14 @@ class Game extends Component<{}> {
     }
   }
 
+  private startSoftDrop(): void {
+    this.setFallingRate(15);
+  }
+
+  private endSoftDrop(): void {
+    this.setFallingRate(this.speedLevel);
+  }
+
   private keyDownEventHandler(This: Game, event: KeyboardEvent): void {
     if (!event.repeat) {
       switch (event.key.toUpperCase()) {
@@ -326,6 +332,10 @@ class Game extends Component<{}> {
           This.moveFallingTetrimino([-1, 0, 0]);
           break;
         }
+        case "S": {
+          This.startSoftDrop();
+          break;
+        }
         case "ARROWRIGHT": {
           This.moveFallingTetrimino([0, 0, 1]);
           break;
@@ -334,6 +344,14 @@ class Game extends Component<{}> {
           This.moveFallingTetrimino([0, 0, -1]);
           break;
         }
+      }
+    }
+  }
+
+  private keyUpEventHandler(This: Game, event: KeyboardEvent): void {
+    switch (event.key.toUpperCase()) {
+      case "S": {
+        This.endSoftDrop();
       }
     }
   }
