@@ -22,15 +22,17 @@ class Game extends Component<{}> {
   private fallingRate: number = 1;
   private speedLevel: number = 1;
   private fallingInterval: NodeJS.Timeout;
-  private playTime: number = 0;
-  private timeToDrop: number | undefined;
+  private spawnPieceTimeout: NodeJS.Timeout;
   private tetriminos: { shape: Tetrimino; color: number }[] = tetriminos;
 
   public constructor(props: {}) {
     super(props);
 
     this.fallingTetrimino = {
-      position: [5, 20],
+      position: [
+        Math.ceil((this.gameContextValue.screenDim[0] - 1) / 2),
+        this.gameContextValue.screenDim[1] - 2,
+      ],
       rotation: 0,
       tetrimino:
         this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
@@ -70,7 +72,6 @@ class Game extends Component<{}> {
     clearInterval(this.fallingInterval);
     this.fallingInterval = setInterval(() => {
       this.moveFallingTetrimino([0, -1, 0]);
-      this.playTime += 1000 / this.fallingRate;
     }, 1000 / this.fallingRate);
   }
 
@@ -141,13 +142,78 @@ class Game extends Component<{}> {
     }
     return output;
   }
+
+  private spawnNewTetrimino() {
+    let i: number;
+    let j: number;
+    let lineLocations: number[] = [];
+    let madeLine: boolean = false;
+    let fallingTetrimino: Tetrimino;
+
+    //Find lines and clear them
+    for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
+      madeLine = true;
+      for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
+        if (this.gameContextValue.tiles[i][j] === 0) {
+          madeLine = false;
+          break;
+        }
+      }
+      if (madeLine) {
+        lineLocations.push(j);
+        for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
+          this.gameContextValue.tiles[i][j] = 0;
+        }
+      }
+    }
+
+    //Make other tetriminos fall into cleared line
+    if (lineLocations.length > 0) {
+      let linesProcessed: number = 0;
+
+      lineLocations.sort();
+
+      for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
+        if (lineLocations[linesProcessed] === j + linesProcessed) {
+          linesProcessed++;
+          j--;
+          continue;
+        }
+        for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
+          this.gameContextValue.tiles[i][j] =
+            this.gameContextValue.tiles[i][j + linesProcessed];
+        }
+      }
+    }
+
+    this.fallingTetrimino = {
+      position: [
+        Math.ceil((this.gameContextValue.screenDim[0] - 1) / 2),
+        this.gameContextValue.screenDim[1] - 2,
+      ],
+      rotation: 0,
+      tetrimino:
+        this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
+    };
+
+    fallingTetrimino = this.getFallingTetrimino();
+
+    for (i = 0; i < fallingTetrimino.length; i++) {
+      this.gameContextValue.tiles[fallingTetrimino[i][0]][
+        fallingTetrimino[i][1]
+      ] = this.fallingTetrimino.tetrimino.color;
+    }
+
+    for (i = 0; i < this.gameContextValue.tileUpdateFunctions.length; i++) {
+      this.gameContextValue.tileUpdateFunctions[i]();
+    }
+  }
+
   private moveFallingTetrimino(coords: [number, number, number]): void {
     let i: number;
     let j: number;
     let k: number;
     let tetriminoTouchedDown: boolean = false;
-    let tetriminoFallen: boolean = false;
-    let lineLocations: number[] = [];
     let fallingTetrimino: Tetrimino = this.getFallingTetrimino();
     let touchingOtherTiles: boolean = false;
     let tetriminoHasMoved: boolean = true;
@@ -231,25 +297,6 @@ class Game extends Component<{}> {
       }
     }
 
-    //Make tetrimino land
-    if (tetriminoTouchedDown) {
-      if (this.playTime >= this.timeToDrop && this.timeToDrop) {
-        for (i = 0; i < fallingTetrimino.length; i++) {
-          this.gameContextValue.tiles[fallingTetrimino[i][0]][
-            fallingTetrimino[i][1]
-          ] = this.fallingTetrimino.tetrimino.color;
-        }
-
-        tetriminoFallen = true;
-
-        this.timeToDrop = undefined;
-      } else if (!this.timeToDrop || tetriminoHasMoved) {
-        this.timeToDrop = this.playTime + 400;
-      }
-    } else {
-      this.timeToDrop = undefined;
-    }
-
     //Readd tetrimino to board
     for (i = 0; i < fallingTetrimino.length; i++) {
       this.gameContextValue.tiles[fallingTetrimino[i][0]][
@@ -257,54 +304,14 @@ class Game extends Component<{}> {
       ] = this.fallingTetrimino.tetrimino.color;
     }
 
-    //Spawn new tetrimino
-    if (tetriminoFallen) {
-      this.fallingTetrimino = {
-        position: [5, 20],
-        rotation: 0,
-        tetrimino:
-          this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
-      };
-    }
-
-    //Clear lines
-    if (tetriminoFallen) {
-      let madeLine: boolean = false;
-
-      for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
-        madeLine = true;
-        for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-          if (this.gameContextValue.tiles[i][j] === 0) {
-            madeLine = false;
-            break;
-          }
-        }
-        if (madeLine) {
-          lineLocations.push(j);
-          for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-            this.gameContextValue.tiles[i][j] = 0;
-          }
-        }
-      }
-    }
-
-    lineLocations.sort();
-
-    //Make fallen tetriminos fall into cleared lines
-    if (lineLocations.length > 0) {
-      let linesProcessed: number = 0;
-
-      for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
-        if (lineLocations[linesProcessed] === j + linesProcessed) {
-          linesProcessed++;
-          j--;
-          continue;
-        }
-        for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-          this.gameContextValue.tiles[i][j] =
-            this.gameContextValue.tiles[i][j + linesProcessed];
-        }
-      }
+    //Make tetrimino land
+    if (tetriminoTouchedDown && tetriminoHasMoved) {
+      clearTimeout(this.spawnPieceTimeout);
+      this.spawnPieceTimeout = setTimeout(() => {
+        this.spawnNewTetrimino();
+      }, 500);
+    } else if (!tetriminoTouchedDown) {
+      clearTimeout(this.spawnPieceTimeout);
     }
 
     //Tell tiles to rerender if needed
