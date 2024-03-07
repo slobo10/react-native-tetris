@@ -13,7 +13,7 @@ import tetriminos from "../constants/tetriminos";
 
 let GameContext: Context<{}> = createContext({});
 
-class Game extends Component {
+class Game extends Component<{}> {
   private gameContextValue: GameContextType = {
     screenDim: [10, 20],
     tileSize: 30,
@@ -29,6 +29,52 @@ class Game extends Component {
   private playTime: number = 0;
   private timeToDrop: number | undefined;
   private tetriminos: { shape: Tetrimino; color: number }[] = tetriminos;
+
+  public constructor(props: {}) {
+    super(props);
+
+    this.fallingTetrimino = {
+      position: [5, 20],
+      rotation: 0,
+      tetrimino:
+        this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
+    };
+
+    let i: number;
+    let j: number;
+    let fallingTetrimino: Tetrimino = this.getFallingTetrimino();
+
+    for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
+      this.gameContextValue.tiles.push([]);
+      for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
+        this.gameContextValue.tiles[i].push(0);
+      }
+    }
+
+    for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
+      this.gameContextValue.tiles[fallingTetrimino[i][0]][
+        fallingTetrimino[i][1]
+      ] = this.fallingTetrimino.tetrimino.color;
+    }
+
+    Tile.contextType = GameContext;
+
+    this.start();
+  }
+
+  private start(): void {
+    setInterval(() => {
+      this.update(this);
+    }, 1000 / this.fallingRate);
+    document.addEventListener("keydown", (event) => {
+      this.keyDownEventHandler(this, event);
+    });
+  }
+
+  private update(This: Game): void {
+    This.moveFallingTetrimino([0, -1, 0]);
+    This.playTime += 1000 / This.fallingRate;
+  }
 
   private getFallingTetrimino(): Tetrimino {
     let i: number;
@@ -269,11 +315,6 @@ class Game extends Component {
     }
   }
 
-  private update(This: Game): void {
-    This.moveFallingTetrimino([0, -1, 0]);
-    This.playTime += 1000 / This.fallingRate;
-  }
-
   private keyDownEventHandler(This: Game, event: KeyboardEvent): void {
     if (!event.repeat) {
       switch (event.key.toUpperCase()) {
@@ -295,47 +336,6 @@ class Game extends Component {
         }
       }
     }
-  }
-
-  private start(): void {
-    setInterval(() => {
-      this.update(this);
-    }, 1000 / this.fallingRate);
-    document.addEventListener("keydown", (event) => {
-      this.keyDownEventHandler(this, event);
-    });
-  }
-
-  public constructor(props: PropsWithChildren) {
-    super(props);
-
-    this.fallingTetrimino = {
-      position: [5, 20],
-      rotation: 0,
-      tetrimino:
-        this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
-    };
-
-    let i: number;
-    let j: number;
-    let fallingTetrimino: Tetrimino = this.getFallingTetrimino();
-
-    for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-      this.gameContextValue.tiles.push([]);
-      for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
-        this.gameContextValue.tiles[i].push(0);
-      }
-    }
-
-    for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
-      this.gameContextValue.tiles[fallingTetrimino[i][0]][
-        fallingTetrimino[i][1]
-      ] = this.fallingTetrimino.tetrimino.color;
-    }
-
-    Tile.contextType = GameContext;
-
-    this.start();
   }
 
   public render(): ReactNode {
