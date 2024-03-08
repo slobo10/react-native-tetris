@@ -277,7 +277,7 @@ class Game extends Component<{}> {
     if (lineLocations.length > 0) {
       let linesProcessed: number = 0;
 
-      lineLocations.sort();
+      lineLocations.sort((a, b) => a - b);
 
       for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
         if (lineLocations[linesProcessed] === j + linesProcessed) {
