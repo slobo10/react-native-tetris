@@ -6,6 +6,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
+    flexDirection: "row",
   },
   gameSvg: {
     backgroundColor: "lightgrey",
@@ -24,6 +25,7 @@ const colors: string[] = [
   "blue",
   "cyan",
   "purple",
+  "white",
 ];
 
 export default styles;

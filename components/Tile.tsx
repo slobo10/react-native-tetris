@@ -6,11 +6,9 @@ import { colors } from "../constants/styles";
 class Tile extends Component<TileProps, TileState> {
   static contextType: Context<{}>;
   private GameContextValue: GameContextType;
+  private coords: [number, number];
 
-  public constructor(
-    props: { coordinates: [number, number] },
-    context: GameContextType
-  ) {
+  public constructor(props: TileProps, context: GameContextType) {
     super(props);
 
     context.tileUpdateFunctions.push(() => {
@@ -34,6 +32,11 @@ class Tile extends Component<TileProps, TileState> {
         context.tiles[this.props.coordinates[0]][this.props.coordinates[1]],
     };
 
+    this.coords = [
+      this.props.coordinates[0] * context.tileSize,
+      (context.screenDim[1] - props.coordinates[1] - 1) * context.tileSize,
+    ];
+
     this.GameContextValue = context;
   }
 
@@ -49,13 +52,8 @@ class Tile extends Component<TileProps, TileState> {
     if (this.state.thisTile) {
       return (
         <Rect
-          x={this.props.coordinates[0] * this.GameContextValue.tileSize}
-          y={
-            (this.GameContextValue.screenDim[1] -
-              this.props.coordinates[1] -
-              1) *
-            this.GameContextValue.tileSize
-          }
+          x={this.coords[0]}
+          y={this.coords[1]}
           width={this.GameContextValue.tileSize}
           height={this.GameContextValue.tileSize}
           fill={colors[this.state.thisTile]}

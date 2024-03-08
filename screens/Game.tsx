@@ -1,88 +1,132 @@
-import {
-  Component,
-  Context,
-  PropsWithChildren,
-  ReactNode,
-  createContext,
-} from "react";
+import { Component, Context, ReactNode, createContext } from "react";
 import Svg from "react-native-svg";
 import styles from "../constants/styles";
 import Tile from "../components/Tile";
-import { GameContextType, Tetrimino } from "../constants/types";
+import { GameContextType, Tetrimino, TetriminoPiece } from "../constants/types";
+import tetriminos from "../constants/tetriminos";
 
 let GameContext: Context<{}> = createContext({});
 
-class Game extends Component {
+class Game extends Component<{}> {
   private gameContextValue: GameContextType;
+  private tetriminos: { shape: Tetrimino; color: number }[] = tetriminos;
   private fallingTetrimino: {
     position: [number, number];
     rotation: number;
-    tetrimino: { shape: Tetrimino; color: number };
+    shape: Tetrimino;
+    color: number;
   };
-  private tetriminos: { shape: Tetrimino; color: number }[]; //Colors: Cyan I, Yellow O, Purple T, Green S, Blue J, Red Z, Orange L
-  private frameRate: number;
-  private playTime: number;
-  private timeToDrop: number | undefined;
+  private fallingRate: number;
+  private speedLevel: number = 1;
+  private fallingInterval: NodeJS.Timeout;
+  private spawnPieceTimeout: NodeJS.Timeout;
+
+  public constructor(props: {}) {
+    super(props);
+
+    this.fallingTetrimino = {
+      position: [0, 0],
+      rotation: 0,
+      color: 0,
+      shape: [],
+    };
+    this.fallingRate = this.speedLevel;
+    this.gameContextValue = {
+      screenDim: [10, 20],
+      tileSize: 30,
+      tiles: [],
+      tileUpdateFunctions: [],
+    };
+
+    let i: number;
+    let j: number;
+    Tile.contextType = GameContext;
+
+    for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
+      this.gameContextValue.tiles.push([]);
+      for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
+        this.gameContextValue.tiles[i].push(0);
+      }
+    }
+    this.spawnNewTetrimino();
+
+    document.addEventListener("keydown", (event) => {
+      this.keyDownEventHandler(event);
+    });
+    document.addEventListener("keyup", (event) => {
+      this.keyUpEventHandler(event);
+    });
+
+    this.setFallingRate(this.fallingRate);
+  }
+
+  private setFallingRate(n: number): void {
+    this.fallingRate = n;
+    clearInterval(this.fallingInterval);
+    this.fallingInterval = setInterval(() => {
+      this.moveFallingTetrimino([0, -1, 0]);
+    }, 1000 / this.fallingRate);
+  }
 
   private getFallingTetrimino(): Tetrimino {
     let i: number;
     let output: Tetrimino = [];
     switch (this.fallingTetrimino.rotation) {
       case 0: {
-        for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.shape.length; i++) {
           output.push([
             Math.floor(
               this.fallingTetrimino.position[0] +
-                this.fallingTetrimino.tetrimino.shape[i][0]
+                this.fallingTetrimino.shape[i][0]
             ),
             Math.floor(
               this.fallingTetrimino.position[1] +
-                this.fallingTetrimino.tetrimino.shape[i][1]
+                this.fallingTetrimino.shape[i][1]
             ),
           ]);
         }
         break;
       }
       case 1: {
-        for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.shape.length; i++) {
           output.push([
             Math.floor(
               this.fallingTetrimino.position[0] +
-                this.fallingTetrimino.tetrimino.shape[i][1]
+                this.fallingTetrimino.shape[i][1]
             ),
             Math.floor(
               this.fallingTetrimino.position[1] -
-                this.fallingTetrimino.tetrimino.shape[i][0]
+                this.fallingTetrimino.shape[i][0]
             ),
           ]);
         }
         break;
       }
       case 2: {
-        for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.shape.length; i++) {
           output.push([
             Math.floor(
               this.fallingTetrimino.position[0] -
-                this.fallingTetrimino.tetrimino.shape[i][0]
+                this.fallingTetrimino.shape[i][0]
             ),
             Math.floor(
               this.fallingTetrimino.position[1] -
-                this.fallingTetrimino.tetrimino.shape[i][1]
+                this.fallingTetrimino.shape[i][1]
             ),
           ]);
         }
         break;
       }
       case 3: {
-        for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
+        for (i = 0; i < this.fallingTetrimino.shape.length; i++) {
           output.push([
             Math.floor(
               this.fallingTetrimino.position[0] -
-                this.fallingTetrimino.tetrimino.shape[i][1]
+                this.fallingTetrimino.shape[i][1]
             ),
             Math.floor(
               this.fallingTetrimino.position[1] +
-                this.fallingTetrimino.tetrimino.shape[i][0]
+                this.fallingTetrimino.shape[i][0]
             ),
           ]);
         }
@@ -91,13 +135,12 @@ class Game extends Component {
     }
     return output;
   }
+
   private moveFallingTetrimino(coords: [number, number, number]): void {
     let i: number;
     let j: number;
     let k: number;
     let tetriminoTouchedDown: boolean = false;
-    let tetriminoFallen: boolean = false;
-    let lineLocations: number[] = [];
     let fallingTetrimino: Tetrimino = this.getFallingTetrimino();
     let touchingOtherTiles: boolean = false;
     let tetriminoHasMoved: boolean = true;
@@ -181,68 +224,60 @@ class Game extends Component {
       }
     }
 
-    //Make tetrimino land
-    if (tetriminoTouchedDown) {
-      if (this.playTime >= this.timeToDrop && this.timeToDrop) {
-        for (i = 0; i < fallingTetrimino.length; i++) {
-          this.gameContextValue.tiles[fallingTetrimino[i][0]][
-            fallingTetrimino[i][1]
-          ] = this.fallingTetrimino.tetrimino.color;
-        }
-
-        tetriminoFallen = true;
-
-        this.timeToDrop = undefined;
-      } else if (!this.timeToDrop || tetriminoHasMoved) {
-        this.timeToDrop = this.playTime + 400;
-      }
-    } else {
-      this.timeToDrop = undefined;
-    }
-
     //Readd tetrimino to board
     for (i = 0; i < fallingTetrimino.length; i++) {
       this.gameContextValue.tiles[fallingTetrimino[i][0]][
         fallingTetrimino[i][1]
-      ] = this.fallingTetrimino.tetrimino.color;
+      ] = this.fallingTetrimino.color;
     }
 
-    //Spawn new tetrimino
-    if (tetriminoFallen) {
-      this.fallingTetrimino = {
-        position: [5, 20],
-        rotation: 0,
-        tetrimino:
-          this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
-      };
+    //Make tetrimino land
+    if (tetriminoTouchedDown && tetriminoHasMoved) {
+      clearTimeout(this.spawnPieceTimeout);
+      this.spawnPieceTimeout = setTimeout(() => {
+        this.spawnNewTetrimino();
+      }, 500);
+    } else if (!tetriminoTouchedDown) {
+      clearTimeout(this.spawnPieceTimeout);
     }
 
-    //Clear lines
-    if (tetriminoFallen) {
-      let madeLine: boolean = false;
+    //Tell tiles to rerender if needed
+    for (i = 0; i < this.gameContextValue.tileUpdateFunctions.length; i++) {
+      this.gameContextValue.tileUpdateFunctions[i]();
+    }
+  }
 
-      for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
-        madeLine = true;
-        for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-          if (this.gameContextValue.tiles[i][j] === 0) {
-            madeLine = false;
-            break;
-          }
+  private spawnNewTetrimino() {
+    let i: number;
+    let j: number;
+    let lineLocations: number[] = [];
+    let madeLine: boolean = false;
+    let fallingTetrimino: Tetrimino;
+    let newTetrimino: TetriminoPiece =
+      this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)];
+
+    //Find lines and clear them
+    for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
+      madeLine = true;
+      for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
+        if (this.gameContextValue.tiles[i][j] === 0) {
+          madeLine = false;
+          break;
         }
-        if (madeLine) {
-          lineLocations.push(j);
-          for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-            this.gameContextValue.tiles[i][j] = 0;
-          }
+      }
+      if (madeLine) {
+        lineLocations.push(j);
+        for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
+          this.gameContextValue.tiles[i][j] = 0;
         }
       }
     }
 
-    lineLocations.sort();
-
-    //Make fallen tetriminos fall into cleared lines
+    //Make other tetriminos fall into cleared line
     if (lineLocations.length > 0) {
       let linesProcessed: number = 0;
+
+      lineLocations.sort((a, b) => a - b);
 
       for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
         if (lineLocations[linesProcessed] === j + linesProcessed) {
@@ -257,158 +292,70 @@ class Game extends Component {
       }
     }
 
-    //Tell tiles to rerender if needed
+    this.fallingTetrimino = {
+      position: [
+        Math.ceil((this.gameContextValue.screenDim[0] - 1) / 2),
+        this.gameContextValue.screenDim[1] - 2,
+      ],
+      rotation: 0,
+      color: newTetrimino.color,
+      shape: newTetrimino.shape,
+    };
+
+    fallingTetrimino = this.getFallingTetrimino();
+
+    for (i = 0; i < fallingTetrimino.length; i++) {
+      this.gameContextValue.tiles[fallingTetrimino[i][0]][
+        fallingTetrimino[i][1]
+      ] = this.fallingTetrimino.color;
+    }
+
     for (i = 0; i < this.gameContextValue.tileUpdateFunctions.length; i++) {
       this.gameContextValue.tileUpdateFunctions[i]();
     }
   }
 
-  private update(This: Game): void {
-    This.moveFallingTetrimino([0, -1, 0]);
-    This.playTime += 1000 / This.frameRate;
+  private startSoftDrop(): void {
+    this.setFallingRate(15);
   }
 
-  private keyDownEventHandler(This: Game, event: KeyboardEvent): void {
+  private endSoftDrop(): void {
+    this.setFallingRate(this.speedLevel);
+  }
+
+  private keyDownEventHandler(event: KeyboardEvent): void {
     if (!event.repeat) {
       switch (event.key.toUpperCase()) {
         case "D": {
-          This.moveFallingTetrimino([1, 0, 0]);
+          this.moveFallingTetrimino([1, 0, 0]);
           break;
         }
         case "A": {
-          This.moveFallingTetrimino([-1, 0, 0]);
+          this.moveFallingTetrimino([-1, 0, 0]);
+          break;
+        }
+        case "S": {
+          this.startSoftDrop();
           break;
         }
         case "ARROWRIGHT": {
-          This.moveFallingTetrimino([0, 0, 1]);
+          this.moveFallingTetrimino([0, 0, 1]);
           break;
         }
         case "ARROWDOWN": {
-          This.moveFallingTetrimino([0, 0, -1]);
+          this.moveFallingTetrimino([0, 0, -1]);
           break;
         }
       }
     }
   }
 
-  private start(): void {
-    setInterval(() => {
-      this.update(this);
-    }, 1000 / this.frameRate);
-    document.addEventListener("keydown", (event) => {
-      this.keyDownEventHandler(this, event);
-    });
-  }
-
-  public constructor(props: PropsWithChildren) {
-    super(props);
-    this.gameContextValue = {
-      screenDim: [10, 20],
-      tileSize: 30,
-      tiles: [],
-      tileUpdateFunctions: [],
-    };
-    this.tetriminos = [
-      //Longbar
-      {
-        color: 6,
-        shape: [
-          [0.5, 1.5],
-          [0.5, 0.5],
-          [0.5, -0.5],
-          [0.5, -1.5],
-        ],
-      },
-      //T
-      {
-        color: 7,
-        shape: [
-          [-1, 0],
-          [0, 0],
-          [1, 0],
-          [0, -1],
-        ],
-      },
-      //L
-      {
-        color: 2,
-        shape: [
-          [1, 0],
-          [0, 0],
-          [-1, 0],
-          [-1, -1],
-        ],
-      },
-      //Anti-L
-      {
-        color: 5,
-        shape: [
-          [1, 0],
-          [0, 0],
-          [-1, 0],
-          [1, -1],
-        ],
-      },
-      //S
-      {
-        color: 4,
-        shape: [
-          [1, 1],
-          [0, 1],
-          [0, 0],
-          [-1, 0],
-        ],
-      },
-      //Z
-      {
-        color: 1,
-        shape: [
-          [-1, 1],
-          [0, 1],
-          [0, 0],
-          [1, 0],
-        ],
-      },
-      //Square
-      {
-        color: 3,
-        shape: [
-          [0.5, 0.5],
-          [0.5, -0.5],
-          [-0.5, -0.5],
-          [-0.5, 0.5],
-        ],
-      },
-    ];
-    this.fallingTetrimino = {
-      position: [5, 20],
-      rotation: 0,
-      tetrimino:
-        this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)],
-    };
-    this.frameRate = 10;
-    this.playTime = 0;
-
-    let i: number;
-    let j: number;
-    let fallingTetrimino: Tetrimino = this.getFallingTetrimino();
-
-    for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-      this.gameContextValue.tiles.push([]);
-      for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
-        this.gameContextValue.tiles[i].push(0);
+  private keyUpEventHandler(event: KeyboardEvent): void {
+    switch (event.key.toUpperCase()) {
+      case "S": {
+        this.endSoftDrop();
       }
     }
-
-    for (i = 0; i < this.fallingTetrimino.tetrimino.shape.length; i++) {
-      this.gameContextValue.tiles[fallingTetrimino[i][0]][
-        fallingTetrimino[i][1]
-      ] = this.fallingTetrimino.tetrimino.color;
-    }
-
-    Tile.contextType = GameContext;
-
-    this.start();
   }
 
   public render(): ReactNode {
