@@ -8,31 +8,35 @@ import tetriminos from "../constants/tetriminos";
 let GameContext: Context<{}> = createContext({});
 
 class Game extends Component<{}> {
-  private gameContextValue: GameContextType = {
-    screenDim: [10, 20],
-    tileSize: 30,
-    tiles: [],
-    tileUpdateFunctions: [],
-  };
+  private gameContextValue: GameContextType;
+  private tetriminos: { shape: Tetrimino; color: number }[] = tetriminos;
   private fallingTetrimino: {
     position: [number, number];
     rotation: number;
     shape: Tetrimino;
     color: number;
-  } = {
-    position: [0, 0],
-    rotation: 0,
-    color: 0,
-    shape: [],
   };
-  private fallingRate: number = 1;
+  private fallingRate: number;
   private speedLevel: number = 1;
   private fallingInterval: NodeJS.Timeout;
   private spawnPieceTimeout: NodeJS.Timeout;
-  private tetriminos: { shape: Tetrimino; color: number }[] = tetriminos;
 
   public constructor(props: {}) {
     super(props);
+
+    this.fallingTetrimino = {
+      position: [0, 0],
+      rotation: 0,
+      color: 0,
+      shape: [],
+    };
+    this.fallingRate = this.speedLevel;
+    this.gameContextValue = {
+      screenDim: [10, 20],
+      tileSize: 30,
+      tiles: [],
+      tileUpdateFunctions: [],
+    };
 
     let i: number;
     let j: number;
@@ -130,74 +134,6 @@ class Game extends Component<{}> {
       }
     }
     return output;
-  }
-
-  private spawnNewTetrimino() {
-    let i: number;
-    let j: number;
-    let lineLocations: number[] = [];
-    let madeLine: boolean = false;
-    let fallingTetrimino: Tetrimino;
-    let newTetrimino: TetriminoPiece =
-      this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)];
-
-    //Find lines and clear them
-    for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
-      madeLine = true;
-      for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-        if (this.gameContextValue.tiles[i][j] === 0) {
-          madeLine = false;
-          break;
-        }
-      }
-      if (madeLine) {
-        lineLocations.push(j);
-        for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-          this.gameContextValue.tiles[i][j] = 0;
-        }
-      }
-    }
-
-    //Make other tetriminos fall into cleared line
-    if (lineLocations.length > 0) {
-      let linesProcessed: number = 0;
-
-      lineLocations.sort();
-
-      for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
-        if (lineLocations[linesProcessed] === j + linesProcessed) {
-          linesProcessed++;
-          j--;
-          continue;
-        }
-        for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-          this.gameContextValue.tiles[i][j] =
-            this.gameContextValue.tiles[i][j + linesProcessed];
-        }
-      }
-    }
-
-    this.fallingTetrimino = {
-      position: [
-        Math.ceil((this.gameContextValue.screenDim[0] - 1) / 2),
-        this.gameContextValue.screenDim[1] - 2,
-      ],
-      rotation: 0,
-      color: newTetrimino.color,
-      shape: newTetrimino.shape,
-    };
-
-    fallingTetrimino = this.getFallingTetrimino();
-
-    for (i = 0; i < fallingTetrimino.length; i++) {
-      this.gameContextValue.tiles[fallingTetrimino[i][0]][
-        fallingTetrimino[i][1]
-      ] = this.fallingTetrimino.color;
-    }
-
-    for (i = 0; i < this.gameContextValue.tileUpdateFunctions.length; i++) {
-      this.gameContextValue.tileUpdateFunctions[i]();
-    }
   }
 
   private moveFallingTetrimino(coords: [number, number, number]): void {
@@ -306,6 +242,74 @@ class Game extends Component<{}> {
     }
 
     //Tell tiles to rerender if needed
+    for (i = 0; i < this.gameContextValue.tileUpdateFunctions.length; i++) {
+      this.gameContextValue.tileUpdateFunctions[i]();
+    }
+  }
+
+  private spawnNewTetrimino() {
+    let i: number;
+    let j: number;
+    let lineLocations: number[] = [];
+    let madeLine: boolean = false;
+    let fallingTetrimino: Tetrimino;
+    let newTetrimino: TetriminoPiece =
+      this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)];
+
+    //Find lines and clear them
+    for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
+      madeLine = true;
+      for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
+        if (this.gameContextValue.tiles[i][j] === 0) {
+          madeLine = false;
+          break;
+        }
+      }
+      if (madeLine) {
+        lineLocations.push(j);
+        for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
+          this.gameContextValue.tiles[i][j] = 0;
+        }
+      }
+    }
+
+    //Make other tetriminos fall into cleared line
+    if (lineLocations.length > 0) {
+      let linesProcessed: number = 0;
+
+      lineLocations.sort();
+
+      for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
+        if (lineLocations[linesProcessed] === j + linesProcessed) {
+          linesProcessed++;
+          j--;
+          continue;
+        }
+        for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
+          this.gameContextValue.tiles[i][j] =
+            this.gameContextValue.tiles[i][j + linesProcessed];
+        }
+      }
+    }
+
+    this.fallingTetrimino = {
+      position: [
+        Math.ceil((this.gameContextValue.screenDim[0] - 1) / 2),
+        this.gameContextValue.screenDim[1] - 2,
+      ],
+      rotation: 0,
+      color: newTetrimino.color,
+      shape: newTetrimino.shape,
+    };
+
+    fallingTetrimino = this.getFallingTetrimino();
+
+    for (i = 0; i < fallingTetrimino.length; i++) {
+      this.gameContextValue.tiles[fallingTetrimino[i][0]][
+        fallingTetrimino[i][1]
+      ] = this.fallingTetrimino.color;
+    }
+
     for (i = 0; i < this.gameContextValue.tileUpdateFunctions.length; i++) {
       this.gameContextValue.tileUpdateFunctions[i]();
     }
