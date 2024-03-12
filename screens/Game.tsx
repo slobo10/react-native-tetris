@@ -252,6 +252,7 @@ class Game extends Component<{}> {
     let j: number;
     let lineLocations: number[] = [];
     let madeLine: boolean = false;
+    let spawnYOffset: number = 0;
     let fallingTetrimino: Tetrimino;
     let newTetrimino: TetriminoPiece =
       this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)];
@@ -292,10 +293,23 @@ class Game extends Component<{}> {
       }
     }
 
+    //Find out how low to spawn new tetrimino
+    for (i = 0; i < newTetrimino.shape.length; i++) {
+      if (
+        newTetrimino.shape[i][1] +
+          this.gameContextValue.screenDim[1] -
+          spawnYOffset >
+        this.gameContextValue.screenDim[1] - 1
+      ) {
+        spawnYOffset = newTetrimino.shape[i][1] + 1;
+      }
+    }
+
+    //Spawn new tetrimino
     this.fallingTetrimino = {
       position: [
         Math.ceil((this.gameContextValue.screenDim[0] - 1) / 2),
-        this.gameContextValue.screenDim[1] - 2,
+        this.gameContextValue.screenDim[1] - spawnYOffset,
       ],
       rotation: 0,
       color: newTetrimino.color,
@@ -304,6 +318,7 @@ class Game extends Component<{}> {
 
     fallingTetrimino = this.getFallingTetrimino();
 
+    //Add new tetrimino to the board
     for (i = 0; i < fallingTetrimino.length; i++) {
       this.gameContextValue.tiles[fallingTetrimino[i][0]][
         fallingTetrimino[i][1]
