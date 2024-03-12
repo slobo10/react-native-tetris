@@ -134,11 +134,30 @@ class BoardBase extends Component<{}> {
     let i: number;
     let j: number;
     let spawnYOffset: number = 0;
+    let newTetriminoIndex: number = Math.floor(
+      Math.random() * (this.tetriminos.length + 1)
+    );
     let madeLine: boolean = false;
+    let reroll: boolean = false;
     let lineLocations: number[] = [];
     let fallingTetrimino: Tetrimino;
-    let newTetrimino: TetriminoPiece =
-      this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)];
+    let newTetriminoPiece: TetriminoPiece;
+
+    //Select random tetrimino piece
+    if (newTetriminoIndex === this.tetriminos.length) {
+      reroll = true;
+    } else if (
+      this.tetriminos[newTetriminoIndex].shape === this.fallingTetrimino.shape
+    ) {
+      reroll = true;
+    } else {
+      newTetriminoPiece = this.tetriminos[newTetriminoIndex];
+    }
+
+    if (reroll) {
+      newTetriminoIndex = Math.floor(Math.random() * this.tetriminos.length);
+      newTetriminoPiece = this.tetriminos[newTetriminoIndex];
+    }
 
     //Find lines and clear them
     for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
@@ -177,14 +196,14 @@ class BoardBase extends Component<{}> {
     }
 
     //Find out how low to spawn new tetrimino
-    for (i = 0; i < newTetrimino.shape.length; i++) {
+    for (i = 0; i < newTetriminoPiece.shape.length; i++) {
       if (
-        newTetrimino.shape[i][1] +
+        newTetriminoPiece.shape[i][1] +
           this.gameContextValue.screenDim[1] -
           spawnYOffset >
         this.gameContextValue.screenDim[1] - 1
       ) {
-        spawnYOffset = newTetrimino.shape[i][1] + 1;
+        spawnYOffset = newTetriminoPiece.shape[i][1] + 1;
       }
     }
 
@@ -195,8 +214,8 @@ class BoardBase extends Component<{}> {
         this.gameContextValue.screenDim[1] - spawnYOffset,
       ],
       rotation: 0,
-      color: newTetrimino.color,
-      shape: newTetrimino.shape,
+      color: newTetriminoPiece.color,
+      shape: newTetriminoPiece.shape,
     };
 
     fallingTetrimino = this.getFallingTetrimino();
