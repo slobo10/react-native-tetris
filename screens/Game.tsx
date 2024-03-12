@@ -8,6 +8,10 @@ import tetriminos from "../constants/tetriminos";
 let GameContext: Context<{}> = createContext({});
 
 class Game extends Component<{}> {
+  private speedLevel: number = 1;
+  private fallingRate: number;
+  private fallingInterval: NodeJS.Timeout;
+  private spawnPieceTimeout: NodeJS.Timeout;
   private gameContextValue: GameContextType;
   private tetriminos: { shape: Tetrimino; color: number }[] = tetriminos;
   private fallingTetrimino: {
@@ -16,10 +20,6 @@ class Game extends Component<{}> {
     shape: Tetrimino;
     color: number;
   };
-  private fallingRate: number;
-  private speedLevel: number = 1;
-  private fallingInterval: NodeJS.Timeout;
-  private spawnPieceTimeout: NodeJS.Timeout;
 
   public constructor(props: {}) {
     super(props);
@@ -71,6 +71,7 @@ class Game extends Component<{}> {
   private getFallingTetrimino(): Tetrimino {
     let i: number;
     let output: Tetrimino = [];
+
     switch (this.fallingTetrimino.rotation) {
       case 0: {
         for (i = 0; i < this.fallingTetrimino.shape.length; i++) {
@@ -136,14 +137,97 @@ class Game extends Component<{}> {
     return output;
   }
 
+  private spawnNewTetrimino() {
+    let i: number;
+    let j: number;
+    let spawnYOffset: number = 0;
+    let madeLine: boolean = false;
+    let lineLocations: number[] = [];
+    let fallingTetrimino: Tetrimino;
+    let newTetrimino: TetriminoPiece =
+      this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)];
+
+    //Find lines and clear them
+    for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
+      madeLine = true;
+      for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
+        if (this.gameContextValue.tiles[i][j] === 0) {
+          madeLine = false;
+          break;
+        }
+      }
+      if (madeLine) {
+        lineLocations.push(j);
+        for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
+          this.gameContextValue.tiles[i][j] = 0;
+        }
+      }
+    }
+
+    //Make other tetriminos fall into cleared line
+    if (lineLocations.length > 0) {
+      let linesProcessed: number = 0;
+
+      lineLocations.sort((a, b) => a - b);
+
+      for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
+        if (lineLocations[linesProcessed] === j + linesProcessed) {
+          linesProcessed++;
+          j--;
+          continue;
+        }
+        for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
+          this.gameContextValue.tiles[i][j] =
+            this.gameContextValue.tiles[i][j + linesProcessed];
+        }
+      }
+    }
+
+    //Find out how low to spawn new tetrimino
+    for (i = 0; i < newTetrimino.shape.length; i++) {
+      if (
+        newTetrimino.shape[i][1] +
+          this.gameContextValue.screenDim[1] -
+          spawnYOffset >
+        this.gameContextValue.screenDim[1] - 1
+      ) {
+        spawnYOffset = newTetrimino.shape[i][1] + 1;
+      }
+    }
+
+    //Spawn new tetrimino
+    this.fallingTetrimino = {
+      position: [
+        Math.ceil((this.gameContextValue.screenDim[0] - 1) / 2),
+        this.gameContextValue.screenDim[1] - spawnYOffset,
+      ],
+      rotation: 0,
+      color: newTetrimino.color,
+      shape: newTetrimino.shape,
+    };
+
+    fallingTetrimino = this.getFallingTetrimino();
+
+    //Add new tetrimino to the board
+    for (i = 0; i < fallingTetrimino.length; i++) {
+      this.gameContextValue.tiles[fallingTetrimino[i][0]][
+        fallingTetrimino[i][1]
+      ] = this.fallingTetrimino.color;
+    }
+
+    for (i = 0; i < this.gameContextValue.tileUpdateFunctions.length; i++) {
+      this.gameContextValue.tileUpdateFunctions[i]();
+    }
+  }
+
   private moveFallingTetrimino(coords: [number, number, number]): void {
     let i: number;
     let j: number;
     let k: number;
     let tetriminoTouchedDown: boolean = false;
-    let fallingTetrimino: Tetrimino = this.getFallingTetrimino();
     let touchingOtherTiles: boolean = false;
     let tetriminoHasMoved: boolean = true;
+    let fallingTetrimino: Tetrimino = this.getFallingTetrimino();
 
     //Remove falling tetrimino from board
     for (i = 0; i < fallingTetrimino.length; i++) {
@@ -242,89 +326,6 @@ class Game extends Component<{}> {
     }
 
     //Tell tiles to rerender if needed
-    for (i = 0; i < this.gameContextValue.tileUpdateFunctions.length; i++) {
-      this.gameContextValue.tileUpdateFunctions[i]();
-    }
-  }
-
-  private spawnNewTetrimino() {
-    let i: number;
-    let j: number;
-    let lineLocations: number[] = [];
-    let madeLine: boolean = false;
-    let spawnYOffset: number = 0;
-    let fallingTetrimino: Tetrimino;
-    let newTetrimino: TetriminoPiece =
-      this.tetriminos[Math.floor(Math.random() * this.tetriminos.length)];
-
-    //Find lines and clear them
-    for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
-      madeLine = true;
-      for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-        if (this.gameContextValue.tiles[i][j] === 0) {
-          madeLine = false;
-          break;
-        }
-      }
-      if (madeLine) {
-        lineLocations.push(j);
-        for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-          this.gameContextValue.tiles[i][j] = 0;
-        }
-      }
-    }
-
-    //Make other tetriminos fall into cleared line
-    if (lineLocations.length > 0) {
-      let linesProcessed: number = 0;
-
-      lineLocations.sort((a, b) => a - b);
-
-      for (j = 0; j < this.gameContextValue.screenDim[1]; j++) {
-        if (lineLocations[linesProcessed] === j + linesProcessed) {
-          linesProcessed++;
-          j--;
-          continue;
-        }
-        for (i = 0; i < this.gameContextValue.screenDim[0]; i++) {
-          this.gameContextValue.tiles[i][j] =
-            this.gameContextValue.tiles[i][j + linesProcessed];
-        }
-      }
-    }
-
-    //Find out how low to spawn new tetrimino
-    for (i = 0; i < newTetrimino.shape.length; i++) {
-      if (
-        newTetrimino.shape[i][1] +
-          this.gameContextValue.screenDim[1] -
-          spawnYOffset >
-        this.gameContextValue.screenDim[1] - 1
-      ) {
-        spawnYOffset = newTetrimino.shape[i][1] + 1;
-      }
-    }
-
-    //Spawn new tetrimino
-    this.fallingTetrimino = {
-      position: [
-        Math.ceil((this.gameContextValue.screenDim[0] - 1) / 2),
-        this.gameContextValue.screenDim[1] - spawnYOffset,
-      ],
-      rotation: 0,
-      color: newTetrimino.color,
-      shape: newTetrimino.shape,
-    };
-
-    fallingTetrimino = this.getFallingTetrimino();
-
-    //Add new tetrimino to the board
-    for (i = 0; i < fallingTetrimino.length; i++) {
-      this.gameContextValue.tiles[fallingTetrimino[i][0]][
-        fallingTetrimino[i][1]
-      ] = this.fallingTetrimino.color;
-    }
-
     for (i = 0; i < this.gameContextValue.tileUpdateFunctions.length; i++) {
       this.gameContextValue.tileUpdateFunctions[i]();
     }
