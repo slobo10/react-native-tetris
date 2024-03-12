@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { FC } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import styles from "./constants/styles";
 import Game from "./screens/Game";
 
